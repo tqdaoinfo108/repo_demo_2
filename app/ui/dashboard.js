@@ -51,18 +51,76 @@ import {
 } from "./dashboard-data";
 
 const navGroups = [
-  { title:"Điều hành", items:[{ label:"Tổng quan", icon:IconHome }, { label:"Hợp tác xã", icon:IconBuildingCommunity }, { label:"Hộ dân & thành viên", icon:IconUsers }, { label:"Tài sản HTX", icon:IconTractor }] },
-  { title:"Vùng trồng & sản xuất", items:[{ label:"Đất đai & GIS", icon:IconMap2 }, { label:"Sản xuất", icon:IconPlant2 }, { label:"Vật tư & nhật ký", icon:IconClipboardData }, { label:"Thu hoạch", icon:IconShoppingBag }] },
-  { title:"Chuỗi giá trị", items:[{ label:"Đóng gói", icon:IconPackage }, { label:"Chất lượng & kiểm nghiệm", icon:IconClipboardCheck }, { label:"Kho & tiêu thụ", icon:IconPackage }, { label:"Vận chuyển & giao nhận", icon:IconTractor }, { label:"Hợp đồng & đối soát", icon:IconCreditCard }, { label:"Truy xuất nguồn gốc", icon:IconQrcode }] },
-  { title:"Tài chính & hồ sơ", items:[{ label:"Tài chính", icon:IconWallet }, { label:"Vốn góp & cổ tức", icon:IconReportMoney }, { label:"Hồ sơ & tài liệu", icon:IconFileCertificate }, { label:"Truyền thông nội bộ", icon:IconBell }] },
+  {
+    title: "Điều hành",
+    items: [
+      { label: "Tổng quan", icon: IconHome },
+      { label: "Hợp tác xã", icon: IconBuildingCommunity },
+      { label: "Hộ dân & thành viên", icon: IconUsers },
+      { label: "Tài sản HTX", icon: IconTractor },
+    ],
+  },
+  {
+    title: "Vùng trồng & sản xuất",
+    items: [
+      { label: "Đất đai & GIS", icon: IconMap2 },
+      { label: "Sản xuất", icon: IconPlant2 },
+      { label: "Vật tư & nhật ký", icon: IconClipboardData },
+      { label: "Thu hoạch", icon: IconShoppingBag },
+    ],
+  },
+  {
+    title: "Chuỗi giá trị",
+    items: [
+      { label: "Đóng gói", icon: IconPackage },
+      { label: "Chất lượng & kiểm nghiệm", icon: IconClipboardCheck },
+      { label: "Kho & tiêu thụ", icon: IconPackage },
+      { label: "Vận chuyển & giao nhận", icon: IconTractor },
+      { label: "Hợp đồng & đối soát", icon: IconCreditCard },
+      { label: "Truy xuất nguồn gốc", icon: IconQrcode },
+    ],
+  },
+  {
+    title: "Tài chính & hồ sơ",
+    items: [
+      { label: "Tài chính", icon: IconWallet },
+      { label: "Vốn góp & cổ tức", icon: IconReportMoney },
+      { label: "Hồ sơ & tài liệu", icon: IconFileCertificate },
+      { label: "Truyền thông nội bộ", icon: IconBell },
+    ],
+  },
 ];
 const nav = navGroups.flatMap((group) => group.items);
 
 const cooperatives = [
-  { code:"HTX-001", name:"HTX Nông nghiệp Tân Thuận", area:"Châu Thành · 412,6 ha", initials:"TT", status:"Đang làm việc" },
-  { code:"HTX-002", name:"HTX Rau an toàn Bình Hòa", area:"Cao Lãnh · 86,4 ha", initials:"BH", status:"Hoạt động" },
-  { code:"HTX-003", name:"HTX Dịch vụ Mỹ An", area:"Tháp Mười · 124,8 ha", initials:"MA", status:"Hoạt động" },
-  { code:"HTX-004", name:"HTX Chăn nuôi Phú Hựu", area:"Lấp Vò · 72 thành viên", initials:"PH", status:"Đang rà soát" },
+  {
+    code: "HTX-001",
+    name: "HTX Nông nghiệp Tân Thuận",
+    area: "Châu Thành · 412,6 ha",
+    initials: "TT",
+    status: "Đang làm việc",
+  },
+  {
+    code: "HTX-002",
+    name: "HTX Rau an toàn Bình Hòa",
+    area: "Cao Lãnh · 86,4 ha",
+    initials: "BH",
+    status: "Hoạt động",
+  },
+  {
+    code: "HTX-003",
+    name: "HTX Dịch vụ Mỹ An",
+    area: "Tháp Mười · 124,8 ha",
+    initials: "MA",
+    status: "Hoạt động",
+  },
+  {
+    code: "HTX-004",
+    name: "HTX Chăn nuôi Phú Hựu",
+    area: "Lấp Vò · 72 thành viên",
+    initials: "PH",
+    status: "Đang rà soát",
+  },
 ];
 
 const initialParcel = {
@@ -188,8 +246,12 @@ export default function Dashboard() {
   );
 
   return (
-    <main className={`app-shell ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}>
-      <aside className={`sidebar ${mobileNav ? "open" : ""} ${sidebarCollapsed ? "collapsed" : ""}`}>
+    <main
+      className={`app-shell ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}
+    >
+      <aside
+        className={`sidebar ${mobileNav ? "open" : ""} ${sidebarCollapsed ? "collapsed" : ""}`}
+      >
         <div className="brand">
           <div className="brand-mark">
             <IconLeaf size={22} />
@@ -199,10 +261,96 @@ export default function Dashboard() {
             <span>Đồng Tháp</span>
           </div>
         </div>
-        <button className="sidebar-toggle" onClick={() => setSidebarCollapsed((value) => !value)} aria-label={sidebarCollapsed ? "Mở rộng menu" : "Thu gọn menu"} title={sidebarCollapsed ? "Mở rộng menu" : "Thu gọn menu"}>{sidebarCollapsed ? <IconChevronRight size={18} /> : <IconChevronLeft size={18} />}</button>
-        <div className="org-switch-wrap"><button className="org-switch" onClick={() => setOrgOpen((value) => !value)} aria-expanded={orgOpen} aria-haspopup="listbox" title={selectedCoop.name}><div className="org-icon">{selectedCoop.initials}</div><div><b>{selectedCoop.name}</b><span>{selectedCoop.area}</span></div><IconChevronDown size={18} /></button>{orgOpen && <div className="org-popover" role="listbox" aria-label="Chọn hợp tác xã"><header><span>ĐƠN VỊ LÀM VIỆC</span><b>Chọn Hợp tác xã</b></header>{cooperatives.map((coop) => <button key={coop.code} className={coop.code === selectedCoop.code ? "active" : ""} onClick={() => { setSelectedCoop(coop); setOrgOpen(false); setNotice(true); }} role="option" aria-selected={coop.code === selectedCoop.code}><i>{coop.initials}</i><div><b>{coop.name}</b><span>{coop.code} · {coop.area}</span></div>{coop.code === selectedCoop.code && <IconCircleCheck size={17} />}</button>)}</div>}</div>
+        <button
+          className="sidebar-toggle"
+          onClick={() => setSidebarCollapsed((value) => !value)}
+          aria-label={sidebarCollapsed ? "Mở rộng menu" : "Thu gọn menu"}
+          title={sidebarCollapsed ? "Mở rộng menu" : "Thu gọn menu"}
+        >
+          {sidebarCollapsed ? (
+            <IconChevronRight size={18} />
+          ) : (
+            <IconChevronLeft size={18} />
+          )}
+        </button>
+        <div className="org-switch-wrap">
+          <button
+            className="org-switch"
+            onClick={() => setOrgOpen((value) => !value)}
+            aria-expanded={orgOpen}
+            aria-haspopup="listbox"
+            title={selectedCoop.name}
+          >
+            <div className="org-icon">{selectedCoop.initials}</div>
+            <div>
+              <b>{selectedCoop.name}</b>
+              <span>{selectedCoop.area}</span>
+            </div>
+            <IconChevronDown size={18} />
+          </button>
+          {orgOpen && (
+            <div
+              className="org-popover"
+              role="listbox"
+              aria-label="Chọn hợp tác xã"
+            >
+              <header>
+                <span>ĐƠN VỊ LÀM VIỆC</span>
+                <b>Chọn Hợp tác xã</b>
+              </header>
+              {cooperatives.map((coop) => (
+                <button
+                  key={coop.code}
+                  className={coop.code === selectedCoop.code ? "active" : ""}
+                  onClick={() => {
+                    setSelectedCoop(coop);
+                    setOrgOpen(false);
+                    setNotice(true);
+                  }}
+                  role="option"
+                  aria-selected={coop.code === selectedCoop.code}
+                >
+                  <i>{coop.initials}</i>
+                  <div>
+                    <b>{coop.name}</b>
+                    <span>
+                      {coop.code} · {coop.area}
+                    </span>
+                  </div>
+                  {coop.code === selectedCoop.code && (
+                    <IconCircleCheck size={17} />
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
         <nav className="sidebar-nav" aria-label="Phân hệ vận hành">
-          {navGroups.map((group) => <section className="nav-group" key={group.title}><h2>{group.title}</h2>{group.items.map(({ label, icon: Icon }) => <button key={label} title={label} aria-label={label} onClick={() => { setActive(label); setUtility(null); setMobileNav(false); }} className={active === label && !viewingSettings ? "nav-item active" : "nav-item"}><Icon size={18} stroke={1.8} />{label}</button>)}</section>)}
+          {navGroups.map((group) => (
+            <section className="nav-group" key={group.title}>
+              <h2>{group.title}</h2>
+              {group.items.map(({ label, icon: Icon }) => (
+                <button
+                  key={label}
+                  title={label}
+                  aria-label={label}
+                  onClick={() => {
+                    setActive(label);
+                    setUtility(null);
+                    setMobileNav(false);
+                  }}
+                  className={
+                    active === label && !viewingSettings
+                      ? "nav-item active"
+                      : "nav-item"
+                  }
+                >
+                  <Icon size={18} stroke={1.8} />
+                  {label}
+                </button>
+              ))}
+            </section>
+          ))}
         </nav>
         <div className="sidebar-footer">
           <button
@@ -721,30 +869,168 @@ export default function Dashboard() {
   );
 }
 
+const aiCapabilities = [
+  { label:"Tình hình sản xuất", prompt:"Phân tích tình hình sản xuất và 3 rủi ro cần ưu tiên hôm nay." },
+  { label:"Cảnh báo sâu bệnh", prompt:"Phân tích dấu hiệu sâu bệnh và các thửa cần kiểm tra hiện trường." },
+  { label:"Lịch sử phun thuốc", prompt:"Tóm tắt lịch sử phun thuốc, thời gian cách ly và các nhật ký thiếu xác nhận." },
+  { label:"Bất thường vật tư", prompt:"Phát hiện việc sử dụng thuốc hoặc phân bón bất thường so với dữ liệu hiện có." },
+  { label:"Dự báo sản lượng", prompt:"Dự báo sản lượng đến cuối vụ, nêu giả định và mức độ tin cậy." },
+  { label:"Dự báo doanh thu", prompt:"Dự báo doanh thu ngắn hạn từ lượng hàng, đơn hàng và công nợ hiện có." },
+  { label:"Nhu cầu tiêu thụ", prompt:"Phân tích nhu cầu tiêu thụ và ưu tiên phân bổ hàng theo đơn đang xử lý." },
+  { label:"Giá nông sản", prompt:"Phân tích biến động giá nông sản; nếu không có giá thị trường thì nêu dữ liệu cần bổ sung." },
+  { label:"Sản lượng bất thường", prompt:"Phát hiện hộ hoặc thửa có sản lượng bất thường cần xác minh." },
+  { label:"Hỏi đáp dữ liệu HTX", prompt:"Tóm tắt các chỉ số vận hành chính của HTX hiện tại." },
+  { label:"Báo cáo định kỳ", prompt:"Tạo bản tóm tắt báo cáo tháng gồm sản xuất, chất lượng, tiêu thụ và tài chính." },
+];
+const AI_SYSTEM_PROMPT = `Bạn là Trợ lý điều hành HTX số cho nông nghiệp Việt Nam. Chỉ sử dụng dữ liệu trong CONTEXT; không suy đoán số liệu, giá thị trường, chẩn đoán sâu bệnh hay khuyến nghị liều lượng thuốc khi CONTEXT không có bằng chứng. Khi dữ liệu thiếu, phải ghi rõ "Chưa đủ dữ liệu" và liệt kê trường cần bổ sung. Không đưa hướng dẫn sử dụng thuốc BVTV cụ thể; yêu cầu cán bộ kỹ thuật/nhãn sản phẩm xác nhận. Trả lời tiếng Việt, ngắn gọn, theo đúng cấu trúc: 1) Kết luận; 2) Bằng chứng dữ liệu; 3) Rủi ro/mức độ tin cậy; 4) Việc cần làm tiếp theo. Với dự báo, luôn nêu giả định, phạm vi thời gian và không gọi đó là số liệu thực tế.`;
+
 function AiProductionChat() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [messages, setMessages] = useState([{ role:"assistant", content:"Tôi có thể phân tích tiến độ mùa vụ, rủi ro nhật ký, QC, tồn kho và đơn tiêu thụ từ dữ liệu dashboard." }]);
+  const [messages, setMessages] = useState([
+    {
+      role: "assistant",
+      content:
+        "Tôi có thể phân tích tiến độ mùa vụ, rủi ro nhật ký, QC, tồn kho và đơn tiêu thụ từ dữ liệu dashboard.",
+    },
+  ]);
   const proxyUrl = process.env.NEXT_PUBLIC_AI_PROXY_URL;
   const ask = async (question) => {
-    const prompt = question.trim(); if (!prompt || loading) return;
-    setInput(""); setMessages((items) => [...items, { role:"user", content:prompt }]); setLoading(true);
+    const prompt = question.trim();
+    if (!prompt || loading) return;
+    setInput("");
+    setMessages((items) => [...items, { role: "user", content: prompt }]);
+    setLoading(true);
     try {
       let answer = "";
       if (proxyUrl) {
-        const response = await fetch(proxyUrl, { method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify({ messages:[{ role:"system", content:"Bạn là trợ lý vận hành HTX. Chỉ phân tích dữ liệu được cung cấp, trả lời tiếng Việt ngắn gọn, có rủi ro và hành động ưu tiên." }, { role:"user", content:`Dữ liệu vận hành: ${aiContext()}\n\nYêu cầu: ${prompt}` }] }) });
+        const response = await fetch(proxyUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages: [
+              {
+                role: "system",
+                content: AI_SYSTEM_PROMPT,
+              },
+              {
+                role: "user",
+                content: `Dữ liệu vận hành: ${aiContext()}\n\nYêu cầu: ${prompt}`,
+              },
+            ],
+          }),
+        });
         if (!response.ok) throw new Error("AI proxy unavailable");
-        const payload = await response.json(); answer = payload?.choices?.[0]?.message?.content || payload?.message || payload?.content || "";
+        const payload = await response.json();
+        answer =
+          payload?.choices?.[0]?.message?.content ||
+          payload?.message ||
+          payload?.content ||
+          "";
       }
-      setMessages((items) => [...items, { role:"assistant", content:answer || localInsight(prompt) }]);
-    } catch { setMessages((items) => [...items, { role:"assistant", content:localInsight(prompt) }]); }
-    finally { setLoading(false); }
+      setMessages((items) => [
+        ...items,
+        { role: "assistant", content: answer || localInsight(prompt) },
+      ]);
+    } catch {
+      setMessages((items) => [
+        ...items,
+        { role: "assistant", content: localInsight(prompt) },
+      ]);
+    } finally {
+      setLoading(false);
+    }
   };
-  return <div className={`ai-chat ${open ? "open" : ""}`}>{open && <section className="ai-chat-window"><header><div className="ai-avatar"><IconSparkles size={17} /></div><div><b>Trợ lý vận hành AI</b><span>{proxyUrl ? "Kết nối qua API proxy" : "Phân tích dữ liệu demo"}</span></div><button onClick={() => setOpen(false)} aria-label="Đóng trợ lý AI"><IconX size={17} /></button></header><div className="ai-suggestions">{["Rủi ro cần ưu tiên hôm nay", "Phân tích tiến độ sản xuất", "Tình hình QC và kho"].map((item) => <button key={item} onClick={() => ask(item)}>{item}</button>)}</div><div className="ai-messages" aria-live="polite">{messages.map((item, index) => <article className={item.role} key={`${item.role}-${index}`}><p>{item.content}</p></article>)}{loading && <article className="assistant"><p>Đang tổng hợp dữ liệu vận hành…</p></article>}</div><form onSubmit={(event) => { event.preventDefault(); ask(input); }}><input value={input} onChange={(event) => setInput(event.target.value)} placeholder="Hỏi tình hình sản xuất…" /><button disabled={!input.trim() || loading} aria-label="Gửi câu hỏi"><IconSend size={16} /></button></form><small>Không gửi mã định danh hoặc dữ liệu nhạy cảm vào AI.</small></section>}<button className="ai-chat-trigger" onClick={() => setOpen((value) => !value)} aria-label={open ? "Đóng chatbot AI" : "Mở chatbot AI"}><IconMessageChatbot size={23} /><span>AI phân tích</span></button></div>;
+  return (
+    <div className={`ai-chat ${open ? "open" : ""}`}>
+      {open && (
+        <section className="ai-chat-window">
+          <header>
+            <div className="ai-avatar">
+              <IconSparkles size={17} />
+            </div>
+            <div>
+              <b>Trợ lý vận hành AI</b>
+              <span>
+                {proxyUrl ? "Kết nối qua API proxy" : "Phân tích dữ liệu demo"}
+              </span>
+            </div>
+            <button onClick={() => setOpen(false)} aria-label="Đóng trợ lý AI">
+              <IconX size={17} />
+            </button>
+          </header>
+          <div className="ai-suggestions">
+            {aiCapabilities.map((item) => (
+              <button key={item.label} onClick={() => ask(item.prompt)} title={item.prompt}>
+                {item.label}
+              </button>
+            ))}
+          </div>
+          <div className="ai-messages" aria-live="polite">
+            {messages.map((item, index) => (
+              <article className={item.role} key={`${item.role}-${index}`}>
+                <p>{item.content}</p>
+              </article>
+            ))}
+            {loading && (
+              <article className="assistant">
+                <p>Đang tổng hợp dữ liệu vận hành…</p>
+              </article>
+            )}
+          </div>
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              ask(input);
+            }}
+          >
+            <input
+              value={input}
+              onChange={(event) => setInput(event.target.value)}
+              placeholder="Hỏi tình hình sản xuất…"
+            />
+            <button
+              disabled={!input.trim() || loading}
+              aria-label="Gửi câu hỏi"
+            >
+              <IconSend size={16} />
+            </button>
+          </form>
+          <small>Không gửi mã định danh hoặc dữ liệu nhạy cảm vào AI.</small>
+        </section>
+      )}
+      <button
+        className="ai-chat-trigger"
+        onClick={() => setOpen((value) => !value)}
+        aria-label={open ? "Đóng chatbot AI" : "Mở chatbot AI"}
+      >
+        <IconMessageChatbot size={23} />
+        <span>AI phân tích</span>
+      </button>
+    </div>
+  );
 }
-function aiContext() { return "Mùa vụ Thu Đông 2026: 2.684/3.274 tấn, hoàn thành 82%. Nhật ký đúng hạn 184/196; 12 bản ghi chờ xác nhận. QC/kiểm nghiệm đạt 8/10 lô; 2 lô chờ kết quả. Kho có lô SR-2408-16 1.250 kg cần ưu tiên xuất trong 48 giờ. Giao nhận 6/8 chuyến. Hợp đồng đã đối soát 14/16; công nợ quá hạn 62,8 triệu đồng."; }
-function localInsight(question) { const text = question.toLowerCase(); if (/qc|kiểm nghiệm|kho/.test(text)) return "Ưu tiên 1: hoàn tất kết quả QC cho 2 lô trước khi xuất. SR-2408-16 còn 1.250 kg và hạn bảo quản 48 giờ, nên phân bổ ngay cho DH-0826-41. Kiểm tra ảnh đóng gói và nhiệt độ kho trước khi lập lệnh xuất."; if (/tiến độ|sản xuất|mùa vụ/.test(text)) return "Tiến độ vụ Thu Đông đạt 82% (2.684/3.274 tấn). Điểm nghẽn là 12 nhật ký chờ xác nhận và 332 tấn chờ nghiệm thu. Hành động hôm nay: tổ trưởng xác nhận nhật ký Tân Thuận, chốt phiếu cân và cập nhật dự báo các thửa đến lịch thu hoạch."; return "Ba việc cần ưu tiên hôm nay: (1) xác nhận 12 nhật ký và 3 phiếu thu hoạch chờ nghiệm thu; (2) hoàn tất QC cho 2 lô, ưu tiên SR-2408-16; (3) chốt 2 chuyến giao nhận và đối soát công nợ 62,8 triệu đồng."; }
+function aiContext() {
+  return `PHẠM VI: Demo HTX Nông nghiệp Tân Thuận, dữ liệu chốt 18/08/2026.
+SẢN XUẤT: Vụ Thu Đông 2026 đạt 2.684/3.274 tấn (82%); 332 tấn chờ nghiệm thu. Sầu riêng 1.120/1.280 tấn; xoài 684/900 tấn; bưởi 428/620 tấn; chanh và khác 452/740 tấn.
+NHẬT KÝ & VẬT TƯ: 184/196 nhật ký đúng hạn; 12 bản ghi chờ xác nhận. TD-042 có bón 320 kg phân hữu cơ vi sinh ngày 18/08. Không có dữ liệu bệnh hại, hoạt chất, liều lượng, ảnh hiện trường hoặc giá vật tư đủ để chẩn đoán/phát hiện định mức bất thường.
+THU HOẠCH & QC: 03 phiếu thu hoạch chờ nghiệm thu. QC đạt 8/10 lô; QC-2408-144 chờ kết quả, QC-2408-147 thiếu ảnh hiện trường. Không có kết quả phòng thử nghiệm chi tiết.
+KHO & GIAO NHẬN: SR-2408-16 còn 1.250 kg, ưu tiên xuất trong 48 giờ; 6/8 chuyến đã điều phối, 2 chuyến chờ xác nhận.
+TIÊU THỤ & TÀI CHÍNH: 27 đơn đang xử lý; 14/16 hợp đồng đã đối soát; doanh thu lũy kế 18,42 tỷ; chờ thanh toán 1,06 tỷ; công nợ quá hạn 62,8 triệu. Không có chuỗi giá thị trường theo thời gian, giá bán bình quân, lịch sử năng suất theo hộ hoặc dự báo thời tiết.`;
+}
+function localInsight(question) {
+  const text = question.toLowerCase();
+  if (/sâu bệnh|dịch hại/.test(text)) return "Kết luận: Chưa đủ dữ liệu để cảnh báo sâu bệnh theo thửa.\n\nBằng chứng: Demo hiện có nhật ký TD-042 về bón phân và 12 nhật ký chờ xác nhận, nhưng không có triệu chứng, ảnh hiện trường, kết quả khảo sát hay dữ liệu bẫy.\n\nRủi ro/mức độ tin cậy: Không thể kết luận có dịch hại; cần kiểm tra thực địa.\n\nViệc cần làm: Thu thập ảnh có tọa độ, triệu chứng, mức độ gây hại, ngày phát hiện và người kiểm tra cho từng thửa.";
+  if (/phun thuốc|thuốc bảo vệ|cách ly/.test(text)) return "Kết luận: Chưa thể tổng hợp lịch sử phun thuốc hoặc xác nhận thời gian cách ly.\n\nBằng chứng: Context chỉ ghi nhận 32 lần sử dụng vật tư và không có hoạt chất, liều lượng, thời điểm phun hay nhãn thuốc.\n\nRủi ro/mức độ tin cậy: Không dùng dữ liệu hiện tại để cho phép thu hoạch.\n\nViệc cần làm: Bổ sung tên thương mại/hoạt chất, liều lượng, thời điểm, thửa đất, người thực hiện và thời gian cách ly theo nhãn sản phẩm; cán bộ kỹ thuật xác nhận.";
+  if (/bất thường|phân bón|vật tư/.test(text)) return "Kết luận: Có 12 nhật ký chờ xác nhận nhưng chưa đủ chuẩn so sánh để kết luận dùng vật tư bất thường.\n\nBằng chứng: TD-042 ghi nhận 320 kg phân hữu cơ vi sinh; chưa có định mức theo cây, diện tích và giai đoạn.\n\nRủi ro/mức độ tin cậy: Chỉ là tín hiệu cần rà soát, không phải kết luận vi phạm.\n\nViệc cần làm: Thiết lập định mức vật tư/ha theo mùa vụ, liên kết hóa đơn đầu vào và so sánh lượng dùng thực tế với định mức.";
+  if (/dự báo sản lượng|sản lượng(?!.*bất thường)/.test(text)) return "Kết luận: Tiến độ hiện đạt 82% (2.684/3.274 tấn); 332 tấn đang chờ nghiệm thu.\n\nBằng chứng: Sầu riêng đạt 1.120/1.280 tấn, xoài 684/900 tấn, bưởi 428/620 tấn.\n\nRủi ro/mức độ tin cậy: Chưa đủ dữ liệu thời tiết, tỷ lệ hao hụt và lịch sử năng suất để tạo dự báo định lượng đáng tin cậy.\n\nViệc cần làm: Chốt phiếu cân 3 đợt thu hoạch, cập nhật dự báo từng thửa và bổ sung dữ liệu thời tiết/hao hụt.";
+  if (/doanh thu|nhu cầu|tiêu thụ|đơn hàng/.test(text)) return "Kết luận: Doanh thu lũy kế 18,42 tỷ; 27 đơn đang xử lý và 1,06 tỷ chờ thanh toán.\n\nBằng chứng: SR-2408-16 có 1.250 kg cần ưu tiên xuất trong 48 giờ; 14/16 hợp đồng đã đối soát.\n\nRủi ro/mức độ tin cậy: Không có lịch sử đơn hàng, giá bán bình quân và xác suất chốt đơn nên chưa thể dự báo doanh thu/nhu cầu chính xác.\n\nViệc cần làm: Ưu tiên phân bổ SR-2408-16, xác nhận 2 chuyến giao nhận và cập nhật forecast theo khách hàng–sản phẩm–tuần.";
+  if (/giá nông sản|giá bán|thị trường/.test(text)) return "Kết luận: Chưa đủ dữ liệu để phân tích giá nông sản.\n\nBằng chứng: Context không có chuỗi giá thị trường, giá hợp đồng theo ngày, khu vực, phẩm cấp hoặc chi phí logistics.\n\nRủi ro/mức độ tin cậy: Không suy đoán giá thị trường từ doanh thu tổng.\n\nViệc cần làm: Nạp bảng giá theo sản phẩm/phẩm cấp/khu vực/ngày và giá bán thực tế từ hợp đồng, sau đó mới phân tích xu hướng.";
+  if (/hộ|thửa.*bất thường|bất thường.*sản lượng/.test(text)) return "Kết luận: Chưa thể xác định hộ có sản lượng bất thường.\n\nBằng chứng: Context có tổng sản lượng theo cây nhưng không có lịch sử năng suất chuẩn hoá theo hộ/thửa/ha.\n\nRủi ro/mức độ tin cậy: Không gắn cờ hộ dân khi thiếu đường cơ sở so sánh.\n\nViệc cần làm: Lưu sản lượng thực tế theo thửa, diện tích, mùa vụ và 3 kỳ gần nhất; chỉ gắn cờ khi lệch ngưỡng đã phê duyệt.";
+  if (/báo cáo|tháng|quý|năm/.test(text)) return "BÁO CÁO VẬN HÀNH DEMO – 18/08/2026\n\n1) Sản xuất: 2.684/3.274 tấn, đạt 82%; 12 nhật ký chờ xác nhận.\n2) Chất lượng: 8/10 lô QC đạt; 2 lô cần hoàn tất kết quả/hồ sơ.\n3) Tiêu thụ: 27 đơn đang xử lý; 6/8 chuyến giao nhận đã điều phối.\n4) Tài chính: doanh thu 18,42 tỷ; công nợ quá hạn 62,8 triệu.\n\nViệc cần làm: nghiệm thu phiếu thu hoạch, chốt QC cho lô xuất kho, ưu tiên SR-2408-16 và đối soát 2 hợp đồng còn lại.";
+  return "Kết luận: Có 3 ưu tiên vận hành trong ngày.\n\nBằng chứng: 12 nhật ký chờ xác nhận; QC đạt 8/10 lô; SR-2408-16 còn 1.250 kg cần xuất trong 48 giờ; công nợ quá hạn 62,8 triệu.\n\nRủi ro/mức độ tin cậy: Đây là phân tích từ dữ liệu demo chốt 18/08/2026.\n\nViệc cần làm: xác nhận nhật ký/phiếu cân, hoàn tất QC–giao nhận và lập kế hoạch thu công nợ.";
+}
 
 const metricIcons = {
   users: IconUsers,
@@ -976,7 +1262,12 @@ function buildChainNodes(item) {
     "Vận chuyển",
     "Tiêu thụ",
   ];
-  const normalizedStage = item.stage === "Giao nhận" ? "Vận chuyển" : item.stage === "Kho lạnh" ? "Kho" : item.stage;
+  const normalizedStage =
+    item.stage === "Giao nhận"
+      ? "Vận chuyển"
+      : item.stage === "Kho lạnh"
+        ? "Kho"
+        : item.stage;
   const stageIndex = Math.max(0, order.indexOf(normalizedStage));
   const source =
     item.code === "DG-2408-09"
