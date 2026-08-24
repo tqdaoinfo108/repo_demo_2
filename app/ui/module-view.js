@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { IconBuildingCommunity, IconCalendarEvent, IconCircleCheck, IconFileText, IconMap2, IconPackage, IconPlant2, IconQrcode, IconUsers, IconWallet } from "@tabler/icons-react";
+import { IconAddressBook, IconBuildingCommunity, IconCalendarEvent, IconCircleCheck, IconFileCheck, IconFileText, IconMap2, IconPackage, IconPlant2, IconQrcode, IconReceipt, IconUsers, IconUserShield, IconWallet } from "@tabler/icons-react";
 import MapWidget from "./map-widget";
 import { ActionModal, DataTable, FormModal, ModuleHero, SideSheet, Status, SummaryStats } from "./shared-ui";
 
@@ -40,9 +40,56 @@ const forms = {
 export default function ModuleView({ active, onNotice, parcel, onSelectParcel }) {
   const [query, setQuery] = useState(""); const [filterOpen, setFilterOpen] = useState(false); const [selected, setSelected] = useState(null); const [creating, setCreating] = useState(false);
   const data = modules[active] || modules["Hợp tác xã"]; const rows = useMemo(() => data.rows.filter((row) => row.join(" ").toLowerCase().includes(query.toLowerCase())), [data, query]);
+  if (active === "Hợp tác xã") return <CooperativeModule onNotice={onNotice} />;
   if (active === "Đất đai & GIS") return <GisModule parcel={parcel} onSelectParcel={onSelectParcel} onNotice={onNotice} />;
   return <section className="module-screen"><ModuleHero icon={data.icon} eyebrow={data.eyebrow} title={active} description="Dữ liệu mẫu liên kết theo mã HTX, thành viên, mùa vụ và chứng từ." actionLabel={data.action} onAction={() => setCreating(true)} /><SummaryStats stats={data.stats} /><DataTable columns={data.columns} rows={rows} query={query} onQueryChange={setQuery} filterOpen={filterOpen} onFilterToggle={() => setFilterOpen(!filterOpen)} onRowClick={setSelected} />{selected && <RecordDetail columns={data.columns} row={selected} onClose={() => setSelected(null)} />}{creating && <CreateForm action={data.action} onClose={() => setCreating(false)} onNotice={onNotice} />}</section>;
 }
+
+const cooperativeProfile = {
+  code: "HTX-001", name: "HTX Nông nghiệp Tân Thuận", tax: "1402156789", address: "Ấp Tân Phú, xã Tân Thuận Tây, TP Cao Lãnh, Đồng Tháp", representative: "Bà Lê Thị Thanh Vân", phone: "0277 385 6688", email: "vanphong@tanthuanhtx.vn", established: "18/03/2019", charterCapital: "6.480.000.000 đ", paidCapital: "6.120.000.000 đ", members: "286 thành viên · 218 hộ", area: "412,6 ha · 46 thửa", status: "Hoạt động", legal: "Đăng ký HTX số 87A8001265",
+};
+const cooperativeMetrics = [
+  { icon: IconUsers, label: "Thành viên có hiệu lực", value: "286", note: "12 thành viên mới trong tháng", detail: ["218 hộ liên kết", "278 hồ sơ đã xác thực", "08 hồ sơ cần bổ sung"] },
+  { icon: IconMap2, label: "Vùng sản xuất", value: "412,6 ha", note: "358,2 ha đạt VietGAP", detail: ["46 thửa đã số hóa", "21,8 ha đang chuyển đổi", "32,4 ha đến kỳ kiểm tra"] },
+  { icon: IconReceipt, label: "Hợp đồng đang hiệu lực", value: "12", note: "Tổng hạn mức 9,86 tỷ đồng", detail: ["08 hợp đồng tiêu thụ", "03 hợp đồng vật tư", "01 hợp đồng logistics"] },
+  { icon: IconFileCheck, label: "Hồ sơ tuân thủ", value: "26/29", note: "03 hồ sơ cần xử lý trong 7 ngày", detail: ["06 chứng nhận còn hiệu lực", "12 hồ sơ pháp lý đã ký số", "08 biên bản kiểm tra nội bộ"] },
+];
+const boardMembers = [
+  ["Bà Lê Thị Thanh Vân", "Giám đốc kiêm người đại diện pháp luật", "Nhiệm kỳ 2024-2029", "Đang hoạt động"],
+  ["Ông Nguyễn Minh Tâm", "Phó giám đốc vận hành", "Phụ trách vùng trồng và tiêu thụ", "Đang hoạt động"],
+  ["Bà Trần Ngọc Ánh", "Kế toán trưởng", "Phụ trách tài chính và vốn góp", "Đang hoạt động"],
+  ["Ông Phạm Quốc Huy", "Trưởng ban kiểm soát", "Giám sát nội bộ và chất lượng", "Đang hoạt động"],
+];
+const cooperativeDocuments = [
+  ["HS-PL-022", "Giấy chứng nhận đăng ký HTX", "Pháp lý", "18/03/2029", "Hiệu lực"],
+  ["HS-QT-014", "Điều lệ HTX nhiệm kỳ 2024-2029", "Quản trị", "30/06/2029", "Đã ký số"],
+  ["HS-CL-041", "Chứng nhận VietGAP vùng Tân Thuận", "Chất lượng", "25/08/2026", "Sắp kiểm tra"],
+  ["HS-AT-018", "Hồ sơ an toàn thực phẩm kho lạnh số 1", "ATTP", "15/12/2026", "Hiệu lực"],
+];
+const cooperativeContracts = [
+  ["HĐ-2026-081", "Công ty Minh Phát", "Sầu riêng Ri6", "186.500.000 đ", "Đã đối soát"],
+  ["HĐ-2026-104", "Công ty An Phú", "Sầu riêng Ri6", "765.000.000 đ", "Chờ ký số"],
+  ["HĐ-2026-093", "GreenMart", "Bưởi da xanh", "318.000.000 đ", "Đang giao"],
+];
+
+function CooperativeModule({ onNotice }) {
+  const [detail, setDetail] = useState(null); const [editing, setEditing] = useState(false); const [activeTab, setActiveTab] = useState("Tổng quan");
+  const profileFields = [{ name:"name", label:"Tên hợp tác xã", value:cooperativeProfile.name, wide:true, required:true }, { name:"tax", label:"Mã số thuế", value:cooperativeProfile.tax, required:true }, { name:"representative", label:"Người đại diện", value:cooperativeProfile.representative, required:true }, { name:"phone", label:"Số điện thoại", value:cooperativeProfile.phone, required:true }, { name:"email", label:"Email", type:"email", value:cooperativeProfile.email, required:true }, { name:"address", label:"Địa chỉ trụ sở", value:cooperativeProfile.address, wide:true, required:true }];
+  const openList = (title, columns, rows) => setDetail({ title, columns, rows });
+  return <section className="module-screen cooperative-screen"><ModuleHero icon={IconBuildingCommunity} eyebrow="Quản trị tổ chức" title="Hợp tác xã" description="Quản lý hồ sơ pháp lý, bộ máy, vùng liên kết, vốn góp và chuỗi hợp đồng của HTX." actionLabel="Cập nhật hồ sơ" onAction={() => setEditing(true)} />
+    <div className="cooperative-tabs">{["Tổng quan", "Bộ máy", "Hồ sơ & tuân thủ", "Đối tác & hợp đồng"].map((tab) => <button key={tab} className={activeTab === tab ? "active" : ""} onClick={() => setActiveTab(tab)}>{tab}</button>)}</div>
+    {activeTab === "Tổng quan" && <><section className="panel cooperative-profile"><div className="coop-profile-head"><div><span className="small-label">HỒ SƠ PHÁP NHÂN</span><h3>{cooperativeProfile.name}</h3><p>{cooperativeProfile.legal} · Mã số thuế {cooperativeProfile.tax}</p></div><Status value={cooperativeProfile.status} /></div><div className="coop-profile-grid"><Info icon={IconAddressBook} label="Trụ sở" value={cooperativeProfile.address} /><Info icon={IconUserShield} label="Người đại diện" value={cooperativeProfile.representative} /><Info icon={IconCalendarEvent} label="Ngày thành lập" value={cooperativeProfile.established} /><Info icon={IconWallet} label="Vốn điều lệ / đã góp" value={`${cooperativeProfile.charterCapital} / ${cooperativeProfile.paidCapital}`} /></div><div className="coop-profile-actions"><button className="outline-btn" onClick={() => setEditing(true)}><IconFileText size={16} />Cập nhật thông tin</button><button className="primary-btn" onClick={() => openList("Danh mục hồ sơ pháp lý", ["Mã hồ sơ", "Tên tài liệu", "Nhóm", "Hết hạn", "Trạng thái"], cooperativeDocuments)}>Xem hồ sơ pháp lý</button></div></section>
+      <section className="coop-metrics">{cooperativeMetrics.map(({ icon: Icon, label, value, note, detail: items }) => <button key={label} onClick={() => setDetail({ title:label, items })}><Icon size={19} /><span>{label}</span><b>{value}</b><small>{note}</small></button>)}</section>
+      <section className="coop-panels"><div className="panel"><PanelHead title="Bộ máy quản trị" subtitle="Nhiệm kỳ 2024-2029" action="Xem đầy đủ" onClick={() => setActiveTab("Bộ máy")} /><div className="compact-list">{boardMembers.slice(0, 3).map(([name, role, scope, status]) => <button key={name} onClick={() => setDetail({ title:name, items:[role, scope, status, "Phân quyền đã được phê duyệt trong nhiệm kỳ hiện tại"] })}><div className="person-initial">{name.split(" ").slice(-2).map((part) => part[0]).join("")}</div><div><b>{name}</b><span>{role}</span></div><Status value={status} /></button>)}</div></div><div className="panel"><PanelHead title="Vùng liên kết trọng điểm" subtitle="Theo mùa vụ Thu Đông 2026" action="Mở GIS" onClick={() => setDetail({ title:"Vùng liên kết trọng điểm", items:["Tân Thuận: 183,4 ha sầu riêng Ri6", "Bình Hòa: 96,2 ha xoài cát Hòa Lộc", "An Phú: 72,1 ha bưởi da xanh", "Tân Hội: 60,9 ha chanh không hạt và cây khác"] })} /><div className="zone-list"><div><b>Tân Thuận</b><span>183,4 ha · 21 thửa · VietGAP</span><i style={{ width:"86%" }} /></div><div><b>Bình Hòa</b><span>96,2 ha · 11 thửa · VietGAP</span><i style={{ width:"62%" }} /></div><div><b>An Phú</b><span>72,1 ha · 8 thửa · đến kỳ kiểm tra</span><i style={{ width:"48%" }} /></div></div></div></section></>}
+    {activeTab === "Bộ máy" && <CoopTable title="Bộ máy quản trị và điều hành" columns={["Họ và tên", "Chức danh", "Phạm vi phụ trách", "Trạng thái"]} rows={boardMembers} onOpen={openList} />}
+    {activeTab === "Hồ sơ & tuân thủ" && <CoopTable title="Hồ sơ pháp lý, chất lượng và tuân thủ" columns={["Mã hồ sơ", "Tên tài liệu", "Nhóm", "Hết hạn", "Trạng thái"]} rows={cooperativeDocuments} onOpen={openList} />}
+    {activeTab === "Đối tác & hợp đồng" && <CoopTable title="Hợp đồng mua bán và đối tác chiến lược" columns={["Mã hợp đồng", "Đối tác", "Sản phẩm", "Giá trị", "Trạng thái"]} rows={cooperativeContracts} onOpen={openList} />}
+    {detail && <CoopDetail detail={detail} onClose={() => setDetail(null)} />}{editing && <FormModal title="Cập nhật hồ sơ hợp tác xã" description="Thông tin được lưu ở trạng thái chờ phê duyệt trong bản demo." fields={profileFields} onClose={() => setEditing(false)} onSubmit={() => { setEditing(false); onNotice(); }} />}</section>;
+}
+function Info({ icon: Icon, label, value }) { return <div><Icon size={17} /><span>{label}</span><b>{value}</b></div>; }
+function PanelHead({ title, subtitle, action, onClick }) { return <div className="panel-head"><div><h2>{title}</h2><p>{subtitle}</p></div><button className="text-btn" onClick={onClick}>{action}</button></div>; }
+function CoopTable({ title, columns, rows, onOpen }) { return <div className="panel coop-table"><PanelHead title={title} subtitle={`${rows.length} bản ghi mô phỏng có thể tra cứu`} action="Xuất danh sách" onClick={() => onOpen(title, columns, rows)} /><div className="table-scroll"><table><thead><tr>{columns.map((column) => <th key={column}>{column}</th>)}<th /></tr></thead><tbody>{rows.map((row) => <tr key={row[0]} onClick={() => onOpen(row[0], columns, [row])}>{row.map((value, index) => <td key={`${row[0]}-${index}`}>{index === row.length - 1 ? <Status value={value} /> : value}</td>)}<td>↗</td></tr>)}</tbody></table></div></div>; }
+function CoopDetail({ detail, onClose }) { return <SideSheet title={detail.title} onClose={onClose}>{detail.items ? <div className="record-detail coop-detail-list">{detail.items.map((item) => <div key={item}><b>{item}</b></div>)}</div> : <div className="record-detail">{detail.rows.map((row) => row.map((value, index) => <div key={`${row[0]}-${index}`}><span>{detail.columns[index]}</span><b>{value}</b></div>))}</div>}</SideSheet>; }
 
 function CreateForm({ action, onClose, onNotice }) { const fields = forms[action]; if (!fields) return <ActionModal title={action} description="Bản demo sẽ lưu biểu mẫu ở trạng thái nháp. Hệ thống thật sẽ kiểm tra quyền truy cập và dữ liệu bắt buộc trước khi phê duyệt." onClose={onClose} onConfirm={() => { onClose(); onNotice(); }} />; return <FormModal title={action} description="Thông tin có dấu * là bắt buộc. Dữ liệu được lưu dạng nháp trong demo." fields={fields} onClose={onClose} onSubmit={() => { onClose(); onNotice(); }} />; }
 
