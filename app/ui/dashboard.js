@@ -55,6 +55,13 @@ const navGroups = [
 ];
 const nav = navGroups.flatMap((group) => group.items);
 
+const cooperatives = [
+  { code:"HTX-001", name:"HTX Nông nghiệp Tân Thuận", area:"Châu Thành · 412,6 ha", initials:"TT", status:"Đang làm việc" },
+  { code:"HTX-002", name:"HTX Rau an toàn Bình Hòa", area:"Cao Lãnh · 86,4 ha", initials:"BH", status:"Hoạt động" },
+  { code:"HTX-003", name:"HTX Dịch vụ Mỹ An", area:"Tháp Mười · 124,8 ha", initials:"MA", status:"Hoạt động" },
+  { code:"HTX-004", name:"HTX Chăn nuôi Phú Hựu", area:"Lấp Vò · 72 thành viên", initials:"PH", status:"Đang rà soát" },
+];
+
 const initialParcel = {
   id: "TD-042",
   name: "Ông Nguyễn Văn Thành",
@@ -152,6 +159,8 @@ export default function Dashboard() {
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [mobileNav, setMobileNav] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [orgOpen, setOrgOpen] = useState(false);
+  const [selectedCoop, setSelectedCoop] = useState(cooperatives[0]);
   const [quickSearchOpen, setQuickSearchOpen] = useState(false);
   const [activityOpen, setActivityOpen] = useState(false);
   const [detail, setDetail] = useState(null);
@@ -188,17 +197,7 @@ export default function Dashboard() {
           </div>
         </div>
         <button className="sidebar-toggle" onClick={() => setSidebarCollapsed((value) => !value)} aria-label={sidebarCollapsed ? "Mở rộng menu" : "Thu gọn menu"} title={sidebarCollapsed ? "Mở rộng menu" : "Thu gọn menu"}>{sidebarCollapsed ? <IconChevronRight size={18} /> : <IconChevronLeft size={18} />}</button>
-        <button
-          className="org-switch"
-          onClick={() => setUtility("Chuyển đơn vị làm việc")}
-        >
-          <div className="org-icon">HT</div>
-          <div>
-            <b>HTX Nông nghiệp Tân Thuận</b>
-            <span>Huyện Châu Thành</span>
-          </div>
-          <IconChevronDown size={18} />
-        </button>
+        <div className="org-switch-wrap"><button className="org-switch" onClick={() => setOrgOpen((value) => !value)} aria-expanded={orgOpen} aria-haspopup="listbox" title={selectedCoop.name}><div className="org-icon">{selectedCoop.initials}</div><div><b>{selectedCoop.name}</b><span>{selectedCoop.area}</span></div><IconChevronDown size={18} /></button>{orgOpen && <div className="org-popover" role="listbox" aria-label="Chọn hợp tác xã"><header><span>ĐƠN VỊ LÀM VIỆC</span><b>Chọn Hợp tác xã</b></header>{cooperatives.map((coop) => <button key={coop.code} className={coop.code === selectedCoop.code ? "active" : ""} onClick={() => { setSelectedCoop(coop); setOrgOpen(false); setNotice(true); }} role="option" aria-selected={coop.code === selectedCoop.code}><i>{coop.initials}</i><div><b>{coop.name}</b><span>{coop.code} · {coop.area}</span></div>{coop.code === selectedCoop.code && <IconCircleCheck size={17} />}</button>)}</div>}</div>
         <nav className="sidebar-nav" aria-label="Phân hệ vận hành">
           {navGroups.map((group) => <section className="nav-group" key={group.title}><h2>{group.title}</h2>{group.items.map(({ label, icon: Icon }) => <button key={label} title={label} aria-label={label} onClick={() => { setActive(label); setUtility(null); setMobileNav(false); }} className={active === label && !viewingSettings ? "nav-item active" : "nav-item"}><Icon size={18} stroke={1.8} />{label}</button>)}</section>)}
         </nav>
