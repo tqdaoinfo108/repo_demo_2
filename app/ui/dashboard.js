@@ -960,6 +960,8 @@ function AiProductionChat() {
               <IconX size={17} />
             </button>
           </header>
+          <section className="ai-context-grid" aria-label="Tóm tắt dữ liệu AI đang phân tích"><div><span>Sản xuất</span><b>82%</b><small>2.684 / 3.274 tấn</small></div><div><span>Điểm cần xử lý</span><b>17</b><small>12 nhật ký · 2 QC · 3 phiếu</small></div><div><span>Ưu tiên kho</span><b>48h</b><small>SR-2408-16 · 1.250 kg</small></div></section>
+          <div className="ai-capability-head"><b>Chọn tác vụ phân tích</b><span>11 năng lực AI</span></div>
           <div className="ai-suggestions">
             {aiCapabilities.map((item) => (
               <button key={item.label} onClick={() => ask(item.prompt)} title={item.prompt}>
