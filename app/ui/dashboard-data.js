@@ -38,4 +38,7 @@ export const controlChecks = [
   { label: "Tem QR đã kích hoạt", value: "8/10 lô", note: "02 lô chờ kiểm nghiệm", tone: "blue", module: "Kho & tiêu thụ" },
   { label: "Hồ sơ đạt chuẩn", value: "6/9", note: "03 thửa đến kỳ kiểm tra", tone: "amber", module: "Hồ sơ & tài liệu" },
   { label: "Đơn hàng đúng SLA", value: "24/27", note: "03 đơn cần xử lý hôm nay", tone: "purple", module: "Kho & tiêu thụ" },
+  { label: "QC / kiểm nghiệm đạt", value: "8/10 lô", note: "02 lô chờ kết quả mẫu", tone: "green", module: "Chất lượng & kiểm nghiệm" },
+  { label: "Lệnh giao nhận", value: "6/8 chuyến", note: "02 chuyến chờ xe xác nhận", tone: "blue", module: "Vận chuyển & giao nhận" },
+  { label: "Hợp đồng đã đối soát", value: "14/16", note: "02 phụ lục cần ký số", tone: "amber", module: "Hợp đồng & đối soát" },
 ];
