@@ -1,5 +1,5 @@
 /** @type {import('next').NextConfig} */
-const basePath = process.env.BASE_PATH || "/repo_demo_2";
+const basePath = process.env.BASE_PATH || (process.env.NODE_ENV === "production" ? "/repo_demo_2" : "");
 
 const nextConfig = {
   output: "export",
