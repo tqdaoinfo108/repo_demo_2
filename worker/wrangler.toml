@@ -1,0 +1,6 @@
+name = "htx-so-openrouter-proxy"
+main = "openrouter-proxy.js"
+compatibility_date = "2026-08-24"
+
+# Set ALLOWED_ORIGIN after deployment, e.g. https://<account>.github.io
+# Set AI_TOKEN only as a Worker secret; never commit it.
