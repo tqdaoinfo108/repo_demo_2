@@ -798,15 +798,15 @@ function Alert({ title, detail, onClick }) {
 }
 function SupplyChainBoard({ onOpen, onGo }) {
   const steps = [
-    "Thửa đất",
-    "Hộ dân",
-    "Mùa vụ",
-    "Nhật ký",
-    "Thu hoạch",
-    "Đóng gói",
-    "Kho",
-    "Giao nhận",
-    "Tiêu thụ",
+    ["Thửa đất", "Đất đai & GIS"],
+    ["Hộ dân", "Hộ dân & thành viên"],
+    ["Mùa vụ", "Sản xuất"],
+    ["Nhật ký", "Vật tư & nhật ký"],
+    ["Thu hoạch", "Thu hoạch"],
+    ["Đóng gói", "Đóng gói"],
+    ["Kho", "Kho & tiêu thụ"],
+    ["Giao nhận", "Vận chuyển & giao nhận"],
+    ["Tiêu thụ", "Hợp đồng & đối soát"],
   ];
   return (
     <section className="panel supply-chain-panel">
@@ -823,14 +823,17 @@ function SupplyChainBoard({ onOpen, onGo }) {
         </button>
       </div>
       <div className="chain-steps">
-        {steps.map((step, index) => (
-          <span
+        {steps.map(([step, module], index) => (
+          <button
+            type="button"
             className={index < 6 ? "done" : index === 6 ? "current" : ""}
             key={step}
+            onClick={() => onGo(module)}
+            aria-label={`Mở ${module}`}
           >
             <i>{index + 1}</i>
             {step}
-          </span>
+          </button>
         ))}
       </div>
       <div className="chain-list">
