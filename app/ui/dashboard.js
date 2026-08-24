@@ -883,6 +883,8 @@ const aiCapabilities = [
   { label:"Báo cáo định kỳ", prompt:"Tạo bản tóm tắt báo cáo tháng gồm sản xuất, chất lượng, tiêu thụ và tài chính." },
 ];
 const AI_SYSTEM_PROMPT = `Bạn là Trợ lý điều hành HTX số cho nông nghiệp Việt Nam. Chỉ sử dụng dữ liệu trong CONTEXT; không suy đoán số liệu, giá thị trường, chẩn đoán sâu bệnh hay khuyến nghị liều lượng thuốc khi CONTEXT không có bằng chứng. Khi dữ liệu thiếu, phải ghi rõ "Chưa đủ dữ liệu" và liệt kê trường cần bổ sung. Không đưa hướng dẫn sử dụng thuốc BVTV cụ thể; yêu cầu cán bộ kỹ thuật/nhãn sản phẩm xác nhận. Trả lời tiếng Việt, ngắn gọn, theo đúng cấu trúc: 1) Kết luận; 2) Bằng chứng dữ liệu; 3) Rủi ro/mức độ tin cậy; 4) Việc cần làm tiếp theo. Với dự báo, luôn nêu giả định, phạm vi thời gian và không gọi đó là số liệu thực tế.`;
+const OPENROUTER_CHAT_URL = "https://openrouter.ai/api/v1/chat/completions";
+const OPENROUTER_MODEL = "google/gemma-4-26b-a4b-it:free";
 
 function AiProductionChat() {
   const [open, setOpen] = useState(false);
@@ -896,6 +898,7 @@ function AiProductionChat() {
     },
   ]);
   const proxyUrl = process.env.NEXT_PUBLIC_AI_PROXY_URL;
+  const directToken = process.env.NEXT_PUBLIC_AI_TOKEN;
   const ask = async (question) => {
     const prompt = question.trim();
     if (!prompt || loading) return;
@@ -904,7 +907,15 @@ function AiProductionChat() {
     setLoading(true);
     try {
       let answer = "";
-      if (proxyUrl) {
+      if (directToken) {
+        const response = await fetch(OPENROUTER_CHAT_URL, {
+          method: "POST",
+          headers: { "Content-Type":"application/json", "Authorization":`Bearer ${directToken}` },
+          body: JSON.stringify({ model:OPENROUTER_MODEL, stream:false, temperature:0.2, max_tokens:900, messages:[{ role:"system", content:AI_SYSTEM_PROMPT }, { role:"user", content:`CONTEXT:\n${aiContext()}\n\nYÊU CẦU:\n${prompt}` }] }),
+        });
+        if (!response.ok) throw new Error("OpenRouter unavailable");
+        const payload = await response.json(); answer = payload?.choices?.[0]?.message?.content || "";
+      } else if (proxyUrl) {
         const response = await fetch(proxyUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
