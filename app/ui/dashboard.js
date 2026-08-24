@@ -11,6 +11,7 @@ import {
 } from "@tabler/icons-react";
 import MapWidget from "./map-widget";
 import ModuleView from "./module-view";
+import SystemSettings from "./system-settings";
 import { ActionModal, SideSheet } from "./shared-ui";
 import { activities, alerts, controlChecks, cropProgress, dashboardKpis, orderSnapshot } from "./dashboard-data";
 
@@ -45,7 +46,8 @@ export default function Dashboard() {
   const [detail, setDetail] = useState(null);
   const [utility, setUtility] = useState(null);
   const selectParcel = useCallback((value) => setParcel(value), []);
-  const pageTitle = active === "Tổng quan" ? "Trung tâm điều hành" : active;
+  const viewingSettings = utility === "Cấu hình hệ thống";
+  const pageTitle = viewingSettings ? "Cấu hình hệ thống" : active === "Tổng quan" ? "Trung tâm điều hành" : active;
   const today = useMemo(() => new Intl.DateTimeFormat("vi-VN", { weekday: "long", day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date(2026, 7, 18)), []);
 
   return (
@@ -53,7 +55,7 @@ export default function Dashboard() {
       <aside className={`sidebar ${mobileNav ? "open" : ""}`}>
         <div className="brand"><div className="brand-mark"><IconLeaf size={22} /></div><div><strong>HTX Số</strong><span>Đồng Tháp</span></div></div>
         <button className="org-switch" onClick={() => setUtility("Chuyển đơn vị làm việc")}><div className="org-icon">HT</div><div><b>HTX Nông nghiệp Tân Thuận</b><span>Huyện Châu Thành</span></div><IconChevronDown size={18} /></button>
-        <nav>{nav.map(({ label, icon: Icon }) => <button key={label} onClick={() => { setActive(label); setMobileNav(false); }} className={active === label ? "nav-item active" : "nav-item"}><Icon size={19} stroke={1.8} />{label}</button>)}</nav>
+        <nav>{nav.map(({ label, icon: Icon }) => <button key={label} onClick={() => { setActive(label); setUtility(null); setMobileNav(false); }} className={active === label && !viewingSettings ? "nav-item active" : "nav-item"}><Icon size={19} stroke={1.8} />{label}</button>)}</nav>
         <div className="sidebar-footer"><button className="nav-item" onClick={() => setUtility("Cấu hình hệ thống")}><IconSettings size={19} />Cấu hình hệ thống</button><button className="profile" onClick={() => setUtility("Tài khoản quản trị")}><div className="avatar">NT</div><div><b>Nguyễn Minh Tâm</b><span>Quản trị HTX</span></div><IconChevronDown size={17} /></button></div>
       </aside>
       {mobileNav && <button className="scrim" aria-label="Đóng menu" onClick={() => setMobileNav(false)} />}
@@ -66,7 +68,7 @@ export default function Dashboard() {
 
           {notice && <div className="notice"><IconCircleCheck size={19} /><span>Thông báo mẫu: Có 3 hồ sơ mùa vụ và 2 đơn hàng đang chờ xử lý.</span><button onClick={() => setNotice(false)}><IconX size={17} /></button></div>}
 
-          {active === "Tổng quan" ? <>
+          {viewingSettings ? <SystemSettings onClose={() => setUtility(null)} onNotice={() => setNotice(true)} /> : active === "Tổng quan" ? <>
           <section className="kpi-grid">
             {dashboardKpis.map((metric) => <Metric key={metric.label} {...metric} onClick={() => setDetail({ type:"metric", ...metric.detail, module:metric.module })} />)}
           </section>
@@ -86,7 +88,7 @@ export default function Dashboard() {
       {quickSearchOpen && <QuickSearch onClose={() => setQuickSearchOpen(false)} onGo={(module) => { setActive(module); setQuickSearchOpen(false); }} />}
       {activityOpen && <ActivitySheet onClose={() => setActivityOpen(false)} onSelect={(item) => { setActivityOpen(false); setDetail({ type:"activity", ...item }); }} />}
       {detail && <DashboardDetail detail={detail} onClose={() => setDetail(null)} onGo={(module) => { setDetail(null); setActive(module); }} />}
-      {utility && <ActionModal title={utility} description={utility === "Cập nhật dữ liệu" ? "Dữ liệu mô phỏng đã sẵn sàng đồng bộ. Xác nhận để cập nhật thời điểm dữ liệu mới nhất." : "Đây là màn hình thao tác mẫu cho buổi demo. Xác nhận để lưu thay đổi ở trạng thái nháp."} onClose={() => setUtility(null)} onConfirm={() => { setUtility(null); setNotice(true); }} />}
+      {utility && utility !== "Cấu hình hệ thống" && <ActionModal title={utility} description={utility === "Cập nhật dữ liệu" ? "Dữ liệu mô phỏng đã sẵn sàng đồng bộ. Xác nhận để cập nhật thời điểm dữ liệu mới nhất." : "Đây là màn hình thao tác mẫu cho buổi demo. Xác nhận để lưu thay đổi ở trạng thái nháp."} onClose={() => setUtility(null)} onConfirm={() => { setUtility(null); setNotice(true); }} />}
     </main>
   );
 }
