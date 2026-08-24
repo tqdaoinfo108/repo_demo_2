@@ -2,19 +2,48 @@
 
 import { useCallback, useMemo, useState } from "react";
 import {
-  IconBell, IconBuildingCommunity, IconCalendarEvent, IconChevronDown,
-  IconClipboardData, IconFileCertificate, IconHome, IconLeaf, IconMap2,
-  IconPackage, IconPlant2, IconReportMoney, IconSearch, IconSettings,
-  IconShoppingBag, IconTractor, IconUsers, IconWallet, IconArrowUpRight,
-  IconCircleCheck, IconAlertTriangle, IconX, IconMenu2, IconQrcode,
-  IconClipboardCheck, IconFileAlert, IconShieldCheck, IconCreditCard,
+  IconBell,
+  IconBuildingCommunity,
+  IconCalendarEvent,
+  IconChevronDown,
+  IconClipboardData,
+  IconFileCertificate,
+  IconHome,
+  IconLeaf,
+  IconMap2,
+  IconPackage,
+  IconPlant2,
+  IconReportMoney,
+  IconSearch,
+  IconSettings,
+  IconShoppingBag,
+  IconTractor,
+  IconUsers,
+  IconWallet,
+  IconArrowUpRight,
+  IconCircleCheck,
+  IconAlertTriangle,
+  IconX,
+  IconMenu2,
+  IconQrcode,
+  IconClipboardCheck,
+  IconFileAlert,
+  IconShieldCheck,
+  IconCreditCard,
 } from "@tabler/icons-react";
 import MapWidget from "./map-widget";
 import ModuleView from "./module-view";
 import SystemSettings from "./system-settings";
 import ProfileSheet from "./profile-sheet";
 import { ActionModal, SideSheet } from "./shared-ui";
-import { activities, alerts, controlChecks, cropProgress, dashboardKpis, orderSnapshot } from "./dashboard-data";
+import {
+  activities,
+  alerts,
+  controlChecks,
+  cropProgress,
+  dashboardKpis,
+  orderSnapshot,
+} from "./dashboard-data";
 
 const nav = [
   { label: "Tổng quan", icon: IconHome },
@@ -34,20 +63,94 @@ const nav = [
   { label: "Hồ sơ & tài liệu", icon: IconFileCertificate },
 ];
 
-const initialParcel = { id: "TD-042", name: "Ông Nguyễn Văn Thành", crop: "Sầu riêng Ri6", area: "2,4 ha", color: "#2d7a4f" };
+const initialParcel = {
+  id: "TD-042",
+  name: "Ông Nguyễn Văn Thành",
+  crop: "Sầu riêng Ri6",
+  area: "2,4 ha",
+  color: "#2d7a4f",
+};
 
 const notifications = [
-  { icon: IconClipboardCheck, tone: "amber", title: "Đơn DH-0826-41 chờ xác nhận", detail: "Công ty An Phú đặt 8.500 kg sầu riêng Ri6.", time: "42 phút trước", action: "Mở đơn hàng", module: "Kho & tiêu thụ" },
-  { icon: IconShieldCheck, tone: "green", title: "Cập nhật nhật ký TD-042", detail: "Bón phân hữu cơ đã được ghi nhận, chờ tổ trưởng xác nhận.", time: "18 phút trước", action: "Xem nhật ký", module: "Sản xuất" },
-  { icon: IconFileAlert, tone: "blue", title: "03 thửa sắp đến hạn kiểm tra", detail: "Chứng nhận VietGAP cần được rà soát trong 7 ngày tới.", time: "3 giờ trước", action: "Xem hồ sơ", module: "Hồ sơ & tài liệu" },
-  { icon: IconCreditCard, tone: "red", title: "Công nợ GreenMart quá hạn", detail: "Cần đối soát khoản phải thu 62.800.000 đ.", time: "Hôm qua", action: "Đối soát", module: "Tài chính" },
+  {
+    icon: IconClipboardCheck,
+    tone: "amber",
+    title: "Đơn DH-0826-41 chờ xác nhận",
+    detail: "Công ty An Phú đặt 8.500 kg sầu riêng Ri6.",
+    time: "42 phút trước",
+    action: "Mở đơn hàng",
+    module: "Kho & tiêu thụ",
+  },
+  {
+    icon: IconShieldCheck,
+    tone: "green",
+    title: "Cập nhật nhật ký TD-042",
+    detail: "Bón phân hữu cơ đã được ghi nhận, chờ tổ trưởng xác nhận.",
+    time: "18 phút trước",
+    action: "Xem nhật ký",
+    module: "Sản xuất",
+  },
+  {
+    icon: IconFileAlert,
+    tone: "blue",
+    title: "03 thửa sắp đến hạn kiểm tra",
+    detail: "Chứng nhận VietGAP cần được rà soát trong 7 ngày tới.",
+    time: "3 giờ trước",
+    action: "Xem hồ sơ",
+    module: "Hồ sơ & tài liệu",
+  },
+  {
+    icon: IconCreditCard,
+    tone: "red",
+    title: "Công nợ GreenMart quá hạn",
+    detail: "Cần đối soát khoản phải thu 62.800.000 đ.",
+    time: "Hôm qua",
+    action: "Đối soát",
+    module: "Tài chính",
+  },
 ];
 
 const supplyChain = [
-  { code:"TH-2408-16", product:"Sầu riêng Ri6 · TD-042", quantity:"1.250 kg", stage:"Thu hoạch", status:"Chờ nghiệm thu", module:"Thu hoạch", progress:42, note:"Tổ Tân Thuận hoàn tất cân tại vườn lúc 09:20" },
-  { code:"DG-2408-09", product:"Bưởi da xanh · MV-TD26-03", quantity:"2.100 kg", stage:"Đóng gói", status:"Đang đóng gói", module:"Đóng gói", progress:61, note:"Bàn đóng gói 04 đang dán tem QR và phân hạng" },
-  { code:"SR-2408-16", product:"Sầu riêng Ri6 · Lô xuất khẩu", quantity:"1.250 kg", stage:"Kho lạnh", status:"Sắp xuất kho", module:"Kho & tiêu thụ", progress:79, note:"Kho lạnh số 1 · ưu tiên xuất trong 48 giờ" },
-  { code:"DH-0826-41", product:"Sầu riêng Ri6 · Công ty An Phú", quantity:"8.500 kg", stage:"Giao nhận", status:"Chờ xác nhận", module:"Kho & tiêu thụ", progress:91, note:"Đã phân bổ 03 lô, chờ khách hàng chốt lịch nhận" },
+  {
+    code: "TH-2408-16",
+    product: "Sầu riêng Ri6 · TD-042",
+    quantity: "1.250 kg",
+    stage: "Thu hoạch",
+    status: "Chờ nghiệm thu",
+    module: "Thu hoạch",
+    progress: 42,
+    note: "Tổ Tân Thuận hoàn tất cân tại vườn lúc 09:20",
+  },
+  {
+    code: "DG-2408-09",
+    product: "Bưởi da xanh · MV-TD26-03",
+    quantity: "2.100 kg",
+    stage: "Đóng gói",
+    status: "Đang đóng gói",
+    module: "Đóng gói",
+    progress: 61,
+    note: "Bàn đóng gói 04 đang dán tem QR và phân hạng",
+  },
+  {
+    code: "SR-2408-16",
+    product: "Sầu riêng Ri6 · Lô xuất khẩu",
+    quantity: "1.250 kg",
+    stage: "Kho lạnh",
+    status: "Sắp xuất kho",
+    module: "Kho & tiêu thụ",
+    progress: 79,
+    note: "Kho lạnh số 1 · ưu tiên xuất trong 48 giờ",
+  },
+  {
+    code: "DH-0826-41",
+    product: "Sầu riêng Ri6 · Công ty An Phú",
+    quantity: "8.500 kg",
+    stage: "Giao nhận",
+    status: "Chờ xác nhận",
+    module: "Kho & tiêu thụ",
+    progress: 91,
+    note: "Đã phân bổ 03 lô, chờ khách hàng chốt lịch nhận",
+  },
 ];
 
 export default function Dashboard() {
@@ -59,64 +162,1090 @@ export default function Dashboard() {
   const [quickSearchOpen, setQuickSearchOpen] = useState(false);
   const [activityOpen, setActivityOpen] = useState(false);
   const [detail, setDetail] = useState(null);
+  const [chainDetail, setChainDetail] = useState(null);
   const [utility, setUtility] = useState(null);
   const selectParcel = useCallback((value) => setParcel(value), []);
   const viewingSettings = utility === "Cấu hình hệ thống";
-  const pageTitle = viewingSettings ? "Cấu hình hệ thống" : active === "Tổng quan" ? "Trung tâm điều hành" : active;
-  const today = useMemo(() => new Intl.DateTimeFormat("vi-VN", { weekday: "long", day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date(2026, 7, 18)), []);
+  const pageTitle = viewingSettings
+    ? "Cấu hình hệ thống"
+    : active === "Tổng quan"
+      ? "Trung tâm điều hành"
+      : active;
+  const today = useMemo(
+    () =>
+      new Intl.DateTimeFormat("vi-VN", {
+        weekday: "long",
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      }).format(new Date(2026, 7, 18)),
+    [],
+  );
 
   return (
     <main className="app-shell">
       <aside className={`sidebar ${mobileNav ? "open" : ""}`}>
-        <div className="brand"><div className="brand-mark"><IconLeaf size={22} /></div><div><strong>HTX Số</strong><span>Đồng Tháp</span></div></div>
-        <button className="org-switch" onClick={() => setUtility("Chuyển đơn vị làm việc")}><div className="org-icon">HT</div><div><b>HTX Nông nghiệp Tân Thuận</b><span>Huyện Châu Thành</span></div><IconChevronDown size={18} /></button>
-        <nav>{nav.map(({ label, icon: Icon }) => <button key={label} onClick={() => { setActive(label); setUtility(null); setMobileNav(false); }} className={active === label && !viewingSettings ? "nav-item active" : "nav-item"}><Icon size={19} stroke={1.8} />{label}</button>)}</nav>
-        <div className="sidebar-footer"><button className="nav-item" onClick={() => setUtility("Cấu hình hệ thống")}><IconSettings size={19} />Cấu hình hệ thống</button><button className="profile" onClick={() => setUtility("Tài khoản quản trị")}><div className="avatar">NT</div><div><b>Nguyễn Minh Tâm</b><span>Quản trị HTX</span></div><IconChevronDown size={17} /></button></div>
+        <div className="brand">
+          <div className="brand-mark">
+            <IconLeaf size={22} />
+          </div>
+          <div>
+            <strong>HTX Số</strong>
+            <span>Đồng Tháp</span>
+          </div>
+        </div>
+        <button
+          className="org-switch"
+          onClick={() => setUtility("Chuyển đơn vị làm việc")}
+        >
+          <div className="org-icon">HT</div>
+          <div>
+            <b>HTX Nông nghiệp Tân Thuận</b>
+            <span>Huyện Châu Thành</span>
+          </div>
+          <IconChevronDown size={18} />
+        </button>
+        <nav>
+          {nav.map(({ label, icon: Icon }) => (
+            <button
+              key={label}
+              onClick={() => {
+                setActive(label);
+                setUtility(null);
+                setMobileNav(false);
+              }}
+              className={
+                active === label && !viewingSettings
+                  ? "nav-item active"
+                  : "nav-item"
+              }
+            >
+              <Icon size={19} stroke={1.8} />
+              {label}
+            </button>
+          ))}
+        </nav>
+        <div className="sidebar-footer">
+          <button
+            className="nav-item"
+            onClick={() => setUtility("Cấu hình hệ thống")}
+          >
+            <IconSettings size={19} />
+            Cấu hình hệ thống
+          </button>
+          <button
+            className="profile"
+            onClick={() => setUtility("Tài khoản quản trị")}
+          >
+            <div className="avatar">NT</div>
+            <div>
+              <b>Nguyễn Minh Tâm</b>
+              <span>Quản trị HTX</span>
+            </div>
+            <IconChevronDown size={17} />
+          </button>
+        </div>
       </aside>
-      {mobileNav && <button className="scrim" aria-label="Đóng menu" onClick={() => setMobileNav(false)} />}
+      {mobileNav && (
+        <button
+          className="scrim"
+          aria-label="Đóng menu"
+          onClick={() => setMobileNav(false)}
+        />
+      )}
 
       <section className="workspace">
-        <header className="topbar"><button className="menu-btn" onClick={() => setMobileNav(true)} aria-label="Mở menu"><IconMenu2 /></button><div className="crumb"><span>Vận hành HTX</span><b>/</b><strong>{pageTitle}</strong></div><div className="top-actions"><button className="icon-btn search" onClick={() => setQuickSearchOpen(true)}><IconSearch size={19} /><span>Tìm kiếm nhanh</span><kbd>⌘ K</kbd></button><div className="notification-wrap"><button className="icon-btn bell" onClick={() => setNotificationOpen(!notificationOpen)} aria-label="Thông báo"><IconBell size={20} />{!notificationOpen && <i />}</button>{notificationOpen && <NotificationPopover onClose={() => setNotificationOpen(false)} onNotice={() => setNotice(true)} onOpen={(module) => { setNotificationOpen(false); setActive(module); }} onAll={() => { setNotificationOpen(false); setDetail({ type:"notifications", title:"Tất cả thông báo" }); }} />}</div></div></header>
+        <header className="topbar">
+          <button
+            className="menu-btn"
+            onClick={() => setMobileNav(true)}
+            aria-label="Mở menu"
+          >
+            <IconMenu2 />
+          </button>
+          <div className="crumb">
+            <span>Vận hành HTX</span>
+            <b>/</b>
+            <strong>{pageTitle}</strong>
+          </div>
+          <div className="top-actions">
+            <button
+              className="icon-btn search"
+              onClick={() => setQuickSearchOpen(true)}
+            >
+              <IconSearch size={19} />
+              <span>Tìm kiếm nhanh</span>
+              <kbd>⌘ K</kbd>
+            </button>
+            <div className="notification-wrap">
+              <button
+                className="icon-btn bell"
+                onClick={() => setNotificationOpen(!notificationOpen)}
+                aria-label="Thông báo"
+              >
+                <IconBell size={20} />
+                {!notificationOpen && <i />}
+              </button>
+              {notificationOpen && (
+                <NotificationPopover
+                  onClose={() => setNotificationOpen(false)}
+                  onNotice={() => setNotice(true)}
+                  onOpen={(module) => {
+                    setNotificationOpen(false);
+                    setActive(module);
+                  }}
+                  onAll={() => {
+                    setNotificationOpen(false);
+                    setDetail({
+                      type: "notifications",
+                      title: "Tất cả thông báo",
+                    });
+                  }}
+                />
+              )}
+            </div>
+          </div>
+        </header>
 
         <div className="content">
-          <div className="page-heading"><div><p>{today}</p><h1>{pageTitle}</h1></div><div className="heading-actions"><button className="outline-btn" onClick={() => setUtility("Xuất báo cáo vận hành")}><IconFileCertificate size={18} />Xuất báo cáo</button><button className="primary-btn" onClick={() => setUtility("Cập nhật dữ liệu")}><IconClipboardData size={18} />Cập nhật dữ liệu</button></div></div>
+          <div className="page-heading">
+            <div>
+              <p>{today}</p>
+              <h1>{pageTitle}</h1>
+            </div>
+            <div className="heading-actions">
+              <button
+                className="outline-btn"
+                onClick={() => setUtility("Xuất báo cáo vận hành")}
+              >
+                <IconFileCertificate size={18} />
+                Xuất báo cáo
+              </button>
+              <button
+                className="primary-btn"
+                onClick={() => setUtility("Cập nhật dữ liệu")}
+              >
+                <IconClipboardData size={18} />
+                Cập nhật dữ liệu
+              </button>
+            </div>
+          </div>
 
-          {notice && <div className="notice"><IconCircleCheck size={19} /><span>Thông báo mẫu: Có 3 hồ sơ mùa vụ và 2 đơn hàng đang chờ xử lý.</span><button onClick={() => setNotice(false)}><IconX size={17} /></button></div>}
+          {notice && (
+            <div className="notice">
+              <IconCircleCheck size={19} />
+              <span>
+                Thông báo mẫu: Có 3 hồ sơ mùa vụ và 2 đơn hàng đang chờ xử lý.
+              </span>
+              <button onClick={() => setNotice(false)}>
+                <IconX size={17} />
+              </button>
+            </div>
+          )}
 
-          {viewingSettings ? <SystemSettings onClose={() => setUtility(null)} onNotice={() => setNotice(true)} /> : active === "Tổng quan" ? <>
-          <section className="kpi-grid">
-            {dashboardKpis.map((metric) => <Metric key={metric.label} {...metric} onClick={() => setDetail({ type:"metric", ...metric.detail, module:metric.module })} />)}
-          </section>
+          {viewingSettings ? (
+            <SystemSettings
+              onClose={() => setUtility(null)}
+              onNotice={() => setNotice(true)}
+            />
+          ) : active === "Tổng quan" ? (
+            <>
+              <section className="kpi-grid">
+                {dashboardKpis.map((metric) => (
+                  <Metric
+                    key={metric.label}
+                    {...metric}
+                    onClick={() =>
+                      setDetail({
+                        type: "metric",
+                        ...metric.detail,
+                        module: metric.module,
+                      })
+                    }
+                  />
+                ))}
+              </section>
 
-          <section className="overview-grid">
-            <div className="panel production-panel"><div className="panel-head"><div><h2>Sản xuất theo mùa vụ</h2><p>Tiến độ Thu Đông 2026 · cập nhật 11:30</p></div><button className="text-btn" onClick={() => setActive("Sản xuất")}>Xem chi tiết <IconArrowUpRight size={16} /></button></div><div className="production-body"><button className="donut" onClick={() => setDetail({ type:"metric", title:"Tiến độ vụ Thu Đông 2026", period:"Cập nhật từ 07 mùa vụ đang theo dõi", summary:"Mức hoàn thành được tính theo khối lượng đã nghiệm thu so với kế hoạch vụ đã được phê duyệt.", module:"Sản xuất", facts:[["Kế hoạch đã duyệt","3.274 tấn"],["Đã nghiệm thu","2.684 tấn"],["Chờ nghiệm thu","332 tấn"],["Dự báo còn lại","258 tấn"]], timeline:[["Hôm nay","Cập nhật 04 nhật ký thu hoạch"],["Tuần này","08 tổ sản xuất hoàn tất đối chiếu sản lượng"]] })}><div><strong>82%</strong><span>hoàn thành</span></div></button><div className="crop-list">{cropProgress.map((crop) => <Crop key={crop.name} {...crop} onClick={() => setDetail({ type:"crop", title:crop.name, period:"Vụ Thu Đông 2026", summary:`${crop.name} đang thực hiện ${crop.pct}% kế hoạch, theo lịch thu hoạch ${crop.harvest.toLowerCase()}.`, module:crop.module, facts:[["Diện tích theo dõi",crop.area],["Kế hoạch",crop.plan],["Đã thực hiện",crop.amount],["Lịch thu hoạch",crop.harvest]], timeline:[["Hôm nay","Tổ trưởng cập nhật tiến độ vườn"],["Tuần này","Đối chiếu sản lượng và chất lượng đầu ra"]] })} />)}</div></div></div>
-            <div className="panel orders-panel"><div className="panel-head"><div><h2>Đơn tiêu thụ</h2><p>Tháng 08/2026 · 27 đơn đang xử lý</p></div><button className="more" aria-label="Mở đơn tiêu thụ" onClick={() => setActive("Kho & tiêu thụ")}>•••</button></div><div className="order-stat"><strong>27</strong><span>đơn hàng đang xử lý</span><em>+5 đơn tuần này</em></div><div className="order-bars"><span style={{height:"68%"}} /><span style={{height:"47%"}} /><span style={{height:"82%"}} /><span style={{height:"61%"}} /><span className="current" style={{height:"94%"}} /><span style={{height:"56%"}} /><span style={{height:"73%"}} /></div><div className="week"><span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>CN</span></div><div className="order-snapshot">{orderSnapshot.map((order) => <button key={order.code} onClick={() => setDetail({ type:"order", title:order.code, period:`Giao dự kiến ${order.delivery}`, summary:`${order.customer} đặt ${order.quantity} ${order.product}. Đơn đang ở trạng thái ${order.status.toLowerCase()}.`, module:"Kho & tiêu thụ", facts:[["Khách hàng",order.customer],["Sản phẩm",order.product],["Giá trị tạm tính",order.value],["Trạng thái",order.status]], timeline:[["Hôm nay","Đối chiếu tồn kho và điều kiện giao"],["Trước giờ giao","Xác nhận lệnh xuất kho và biên bản bàn giao"]] })}><b>{order.code}</b><span>{order.quantity} · {order.status}</span></button>)}</div></div>
-          </section>
+              <section className="overview-grid">
+                <div className="panel production-panel">
+                  <div className="panel-head">
+                    <div>
+                      <h2>Sản xuất theo mùa vụ</h2>
+                      <p>Tiến độ Thu Đông 2026 · cập nhật 11:30</p>
+                    </div>
+                    <button
+                      className="text-btn"
+                      onClick={() => setActive("Sản xuất")}
+                    >
+                      Xem chi tiết <IconArrowUpRight size={16} />
+                    </button>
+                  </div>
+                  <div className="production-body">
+                    <button
+                      className="donut"
+                      onClick={() =>
+                        setDetail({
+                          type: "metric",
+                          title: "Tiến độ vụ Thu Đông 2026",
+                          period: "Cập nhật từ 07 mùa vụ đang theo dõi",
+                          summary:
+                            "Mức hoàn thành được tính theo khối lượng đã nghiệm thu so với kế hoạch vụ đã được phê duyệt.",
+                          module: "Sản xuất",
+                          facts: [
+                            ["Kế hoạch đã duyệt", "3.274 tấn"],
+                            ["Đã nghiệm thu", "2.684 tấn"],
+                            ["Chờ nghiệm thu", "332 tấn"],
+                            ["Dự báo còn lại", "258 tấn"],
+                          ],
+                          timeline: [
+                            ["Hôm nay", "Cập nhật 04 nhật ký thu hoạch"],
+                            [
+                              "Tuần này",
+                              "08 tổ sản xuất hoàn tất đối chiếu sản lượng",
+                            ],
+                          ],
+                        })
+                      }
+                    >
+                      <div>
+                        <strong>82%</strong>
+                        <span>hoàn thành</span>
+                      </div>
+                    </button>
+                    <div className="crop-list">
+                      {cropProgress.map((crop) => (
+                        <Crop
+                          key={crop.name}
+                          {...crop}
+                          onClick={() =>
+                            setDetail({
+                              type: "crop",
+                              title: crop.name,
+                              period: "Vụ Thu Đông 2026",
+                              summary: `${crop.name} đang thực hiện ${crop.pct}% kế hoạch, theo lịch thu hoạch ${crop.harvest.toLowerCase()}.`,
+                              module: crop.module,
+                              facts: [
+                                ["Diện tích theo dõi", crop.area],
+                                ["Kế hoạch", crop.plan],
+                                ["Đã thực hiện", crop.amount],
+                                ["Lịch thu hoạch", crop.harvest],
+                              ],
+                              timeline: [
+                                ["Hôm nay", "Tổ trưởng cập nhật tiến độ vườn"],
+                                [
+                                  "Tuần này",
+                                  "Đối chiếu sản lượng và chất lượng đầu ra",
+                                ],
+                              ],
+                            })
+                          }
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div className="panel orders-panel">
+                  <div className="panel-head">
+                    <div>
+                      <h2>Đơn tiêu thụ</h2>
+                      <p>Tháng 08/2026 · 27 đơn đang xử lý</p>
+                    </div>
+                    <button
+                      className="more"
+                      aria-label="Mở đơn tiêu thụ"
+                      onClick={() => setActive("Kho & tiêu thụ")}
+                    >
+                      •••
+                    </button>
+                  </div>
+                  <div className="order-stat">
+                    <strong>27</strong>
+                    <span>đơn hàng đang xử lý</span>
+                    <em>+5 đơn tuần này</em>
+                  </div>
+                  <div className="order-bars">
+                    <span style={{ height: "68%" }} />
+                    <span style={{ height: "47%" }} />
+                    <span style={{ height: "82%" }} />
+                    <span style={{ height: "61%" }} />
+                    <span className="current" style={{ height: "94%" }} />
+                    <span style={{ height: "56%" }} />
+                    <span style={{ height: "73%" }} />
+                  </div>
+                  <div className="week">
+                    <span>T2</span>
+                    <span>T3</span>
+                    <span>T4</span>
+                    <span>T5</span>
+                    <span>T6</span>
+                    <span>CN</span>
+                  </div>
+                  <div className="order-snapshot">
+                    {orderSnapshot.map((order) => (
+                      <button
+                        key={order.code}
+                        onClick={() =>
+                          setDetail({
+                            type: "order",
+                            title: order.code,
+                            period: `Giao dự kiến ${order.delivery}`,
+                            summary: `${order.customer} đặt ${order.quantity} ${order.product}. Đơn đang ở trạng thái ${order.status.toLowerCase()}.`,
+                            module: "Kho & tiêu thụ",
+                            facts: [
+                              ["Khách hàng", order.customer],
+                              ["Sản phẩm", order.product],
+                              ["Giá trị tạm tính", order.value],
+                              ["Trạng thái", order.status],
+                            ],
+                            timeline: [
+                              [
+                                "Hôm nay",
+                                "Đối chiếu tồn kho và điều kiện giao",
+                              ],
+                              [
+                                "Trước giờ giao",
+                                "Xác nhận lệnh xuất kho và biên bản bàn giao",
+                              ],
+                            ],
+                          })
+                        }
+                      >
+                        <b>{order.code}</b>
+                        <span>
+                          {order.quantity} · {order.status}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </section>
 
-          <section className="panel gis-panel"><div className="panel-head"><div><h2>Bản đồ vùng sản xuất</h2><p>Tra cứu thửa đất, mùa vụ và trạng thái tiêu chuẩn</p></div><div className="map-legend"><span><i className="legend-green" />Đạt VietGAP</span><span><i className="legend-amber" />Đang chuyển đổi</span><span><i className="legend-blue" />Vùng liên kết</span></div></div><div className="map-layout"><div className="map-wrap"><MapWidget selectedParcel={parcel} onSelect={selectParcel} /><div className="map-filter"><IconSearch size={16} /><span>Tìm thửa đất, hộ dân...</span></div></div><aside className="parcel-card"><div className="parcel-label">THỬA ĐẤT ĐANG CHỌN</div><h3>{parcel.id}</h3><div className="parcel-status"><span style={{background:parcel.color}} />Đạt chuẩn VietGAP</div><dl><div><dt>Chủ sử dụng</dt><dd>{parcel.name}</dd></div><div><dt>Cây trồng</dt><dd>{parcel.crop}</dd></div><div><dt>Diện tích</dt><dd>{parcel.area}</dd></div><div><dt>Mùa vụ</dt><dd>Thu Đông 2026</dd></div></dl><button className="primary-btn full" onClick={() => setActive("Đất đai & GIS")}>Mở hồ sơ thửa đất <IconArrowUpRight size={17} /></button></aside></div></section>
+              <section className="panel gis-panel">
+                <div className="panel-head">
+                  <div>
+                    <h2>Bản đồ vùng sản xuất</h2>
+                    <p>Tra cứu thửa đất, mùa vụ và trạng thái tiêu chuẩn</p>
+                  </div>
+                  <div className="map-legend">
+                    <span>
+                      <i className="legend-green" />
+                      Đạt VietGAP
+                    </span>
+                    <span>
+                      <i className="legend-amber" />
+                      Đang chuyển đổi
+                    </span>
+                    <span>
+                      <i className="legend-blue" />
+                      Vùng liên kết
+                    </span>
+                  </div>
+                </div>
+                <div className="map-layout">
+                  <div className="map-wrap">
+                    <MapWidget
+                      selectedParcel={parcel}
+                      onSelect={selectParcel}
+                    />
+                    <div className="map-filter">
+                      <IconSearch size={16} />
+                      <span>Tìm thửa đất, hộ dân...</span>
+                    </div>
+                  </div>
+                  <aside className="parcel-card">
+                    <div className="parcel-label">THỬA ĐẤT ĐANG CHỌN</div>
+                    <h3>{parcel.id}</h3>
+                    <div className="parcel-status">
+                      <span style={{ background: parcel.color }} />
+                      Đạt chuẩn VietGAP
+                    </div>
+                    <dl>
+                      <div>
+                        <dt>Chủ sử dụng</dt>
+                        <dd>{parcel.name}</dd>
+                      </div>
+                      <div>
+                        <dt>Cây trồng</dt>
+                        <dd>{parcel.crop}</dd>
+                      </div>
+                      <div>
+                        <dt>Diện tích</dt>
+                        <dd>{parcel.area}</dd>
+                      </div>
+                      <div>
+                        <dt>Mùa vụ</dt>
+                        <dd>Thu Đông 2026</dd>
+                      </div>
+                    </dl>
+                    <button
+                      className="primary-btn full"
+                      onClick={() => setActive("Đất đai & GIS")}
+                    >
+                      Mở hồ sơ thửa đất <IconArrowUpRight size={17} />
+                    </button>
+                  </aside>
+                </div>
+              </section>
 
-          <section className="control-grid">{controlChecks.map((item) => <button className={`control-check ${item.tone}`} key={item.label} onClick={() => setActive(item.module)}><span>{item.label}</span><b>{item.value}</b><small>{item.note}</small><IconArrowUpRight size={16} /></button>)}</section>
-          <SupplyChainBoard onOpen={(item) => setDetail({ type:"chain", title:`${item.code} · ${item.stage}`, period:"Chuỗi vận hành thời gian thực · dữ liệu demo", summary:item.note, module:item.module, facts:[["Sản phẩm / nguồn",item.product],["Khối lượng",item.quantity],["Công đoạn hiện tại",item.stage],["Trạng thái",item.status]], timeline:[["Thửa đất & hộ","TD-042 · TV-102 · Nguyễn Văn Thành"],["Mùa vụ & nhật ký","MV-TD26-01 · 12 bản ghi đã xác nhận"],["Thu hoạch","TH-2408-16 · phiếu cân hiện trường"],["Đóng gói / kho","DG-2408-09 → SR-2408-16"]] })} onGo={setActive} />
-          <section className="lower-grid"><div className="panel activity-panel"><div className="panel-head"><div><h2>Hoạt động mới nhất</h2><p>Cập nhật từ các phân hệ trong ngày</p></div><button className="text-btn" onClick={() => setActivityOpen(true)}>Tất cả <IconArrowUpRight size={16} /></button></div><div className="activity-list">{activities.map((item) => <button className="activity" key={item.title} onClick={() => setDetail({ type:"activity", ...item.detail, module:item.module })}><div className={`activity-icon ${item.tone}`}><item.icon size={18} /></div><div><b>{item.title}</b><p>{item.sub}</p></div><time>{item.time}</time></button>)}</div></div><div className="panel alerts-panel"><div className="panel-head"><div><h2>Cần lưu ý</h2><p>Cảnh báo vận hành cần xử lý</p></div><span className="count">03</span></div>{alerts.map((alert) => <Alert key={alert.title} title={alert.title} detail={alert.detail} onClick={() => setDetail({ type:"alert", ...alert.detailData, module:alert.module })} />)}</div></section>
-          </> : <ModuleView active={active} onNotice={() => setNotice(true)} parcel={parcel} onSelectParcel={selectParcel} />}
+              <section className="control-grid">
+                {controlChecks.map((item) => (
+                  <button
+                    className={`control-check ${item.tone}`}
+                    key={item.label}
+                    onClick={() => setActive(item.module)}
+                  >
+                    <span>{item.label}</span>
+                    <b>{item.value}</b>
+                    <small>{item.note}</small>
+                    <IconArrowUpRight size={16} />
+                  </button>
+                ))}
+              </section>
+              <SupplyChainBoard onOpen={setChainDetail} onGo={setActive} />
+              <section className="lower-grid">
+                <div className="panel activity-panel">
+                  <div className="panel-head">
+                    <div>
+                      <h2>Hoạt động mới nhất</h2>
+                      <p>Cập nhật từ các phân hệ trong ngày</p>
+                    </div>
+                    <button
+                      className="text-btn"
+                      onClick={() => setActivityOpen(true)}
+                    >
+                      Tất cả <IconArrowUpRight size={16} />
+                    </button>
+                  </div>
+                  <div className="activity-list">
+                    {activities.map((item) => (
+                      <button
+                        className="activity"
+                        key={item.title}
+                        onClick={() =>
+                          setDetail({
+                            type: "activity",
+                            ...item.detail,
+                            module: item.module,
+                          })
+                        }
+                      >
+                        <div className={`activity-icon ${item.tone}`}>
+                          <item.icon size={18} />
+                        </div>
+                        <div>
+                          <b>{item.title}</b>
+                          <p>{item.sub}</p>
+                        </div>
+                        <time>{item.time}</time>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="panel alerts-panel">
+                  <div className="panel-head">
+                    <div>
+                      <h2>Cần lưu ý</h2>
+                      <p>Cảnh báo vận hành cần xử lý</p>
+                    </div>
+                    <span className="count">03</span>
+                  </div>
+                  {alerts.map((alert) => (
+                    <Alert
+                      key={alert.title}
+                      title={alert.title}
+                      detail={alert.detail}
+                      onClick={() =>
+                        setDetail({
+                          type: "alert",
+                          ...alert.detailData,
+                          module: alert.module,
+                        })
+                      }
+                    />
+                  ))}
+                </div>
+              </section>
+            </>
+          ) : (
+            <ModuleView
+              active={active}
+              onNotice={() => setNotice(true)}
+              parcel={parcel}
+              onSelectParcel={selectParcel}
+            />
+          )}
         </div>
       </section>
-      {quickSearchOpen && <QuickSearch onClose={() => setQuickSearchOpen(false)} onGo={(module) => { setActive(module); setQuickSearchOpen(false); }} />}
-      {activityOpen && <ActivitySheet onClose={() => setActivityOpen(false)} onSelect={(item) => { setActivityOpen(false); setDetail({ type:"activity", ...item }); }} />}
-      {detail && <DashboardDetail detail={detail} onClose={() => setDetail(null)} onGo={(module) => { setDetail(null); setActive(module); }} />}
-      {utility === "Tài khoản quản trị" && <ProfileSheet onClose={() => setUtility(null)} onNotice={() => setNotice(true)} />}
-      {utility && utility !== "Cấu hình hệ thống" && utility !== "Tài khoản quản trị" && <ActionModal title={utility} description={utility === "Cập nhật dữ liệu" ? "Dữ liệu mô phỏng đã sẵn sàng đồng bộ. Xác nhận để cập nhật thời điểm dữ liệu mới nhất." : "Đây là màn hình thao tác mẫu cho buổi demo. Xác nhận để lưu thay đổi ở trạng thái nháp."} onClose={() => setUtility(null)} onConfirm={() => { setUtility(null); setNotice(true); }} />}
+      {quickSearchOpen && (
+        <QuickSearch
+          onClose={() => setQuickSearchOpen(false)}
+          onGo={(module) => {
+            setActive(module);
+            setQuickSearchOpen(false);
+          }}
+        />
+      )}
+      {activityOpen && (
+        <ActivitySheet
+          onClose={() => setActivityOpen(false)}
+          onSelect={(item) => {
+            setActivityOpen(false);
+            setDetail({ type: "activity", ...item });
+          }}
+        />
+      )}
+      {detail && (
+        <DashboardDetail
+          detail={detail}
+          onClose={() => setDetail(null)}
+          onGo={(module) => {
+            setDetail(null);
+            setActive(module);
+          }}
+        />
+      )}
+      {chainDetail && (
+        <ChainDetailDrawer
+          item={chainDetail}
+          onClose={() => setChainDetail(null)}
+          onGo={(module) => {
+            setChainDetail(null);
+            setActive(module);
+          }}
+        />
+      )}
+      {utility === "Tài khoản quản trị" && (
+        <ProfileSheet
+          onClose={() => setUtility(null)}
+          onNotice={() => setNotice(true)}
+        />
+      )}
+      {utility &&
+        utility !== "Cấu hình hệ thống" &&
+        utility !== "Tài khoản quản trị" && (
+          <ActionModal
+            title={utility}
+            description={
+              utility === "Cập nhật dữ liệu"
+                ? "Dữ liệu mô phỏng đã sẵn sàng đồng bộ. Xác nhận để cập nhật thời điểm dữ liệu mới nhất."
+                : "Đây là màn hình thao tác mẫu cho buổi demo. Xác nhận để lưu thay đổi ở trạng thái nháp."
+            }
+            onClose={() => setUtility(null)}
+            onConfirm={() => {
+              setUtility(null);
+              setNotice(true);
+            }}
+          />
+        )}
     </main>
   );
 }
 
-const metricIcons = { users: IconUsers, map: IconMap2, tractor: IconTractor, money: IconReportMoney };
-function Metric({ icon, label, value, change, tone, onClick }) { const Icon = metricIcons[icon]; return <button className="metric" onClick={onClick}><div className={`metric-icon ${tone}`}><Icon size={20} /></div><p>{label}</p><div><strong>{value}</strong><span className={tone}><IconArrowUpRight size={14} />{change}</span></div></button>; }
-function Crop({ name, amount, pct, color, onClick }) { return <button className="crop" onClick={onClick}><div><span style={{background:color}} />{name}<b>{amount}</b></div><div className="track"><i style={{width:`${pct}%`, background:color}} /></div></button>; }
-function Alert({ title, detail, onClick }) { return <button className="alert" onClick={onClick}><div><IconAlertTriangle size={18} /></div><p><b>{title}</b><span>{detail}</span></p><IconArrowUpRight size={17} /></button>; }
-function SupplyChainBoard({ onOpen, onGo }) { const steps = ["Thửa đất", "Hộ dân", "Mùa vụ", "Nhật ký", "Thu hoạch", "Đóng gói", "Kho", "Giao nhận", "Tiêu thụ"]; return <section className="panel supply-chain-panel"><div className="panel-head"><div><h2>Điều phối chuỗi nông sản</h2><p>Theo dõi lô đang di chuyển từ vùng trồng đến đơn tiêu thụ</p></div><button className="text-btn" onClick={() => onGo("Truy xuất nguồn gốc")}>Mở truy xuất <IconArrowUpRight size={16} /></button></div><div className="chain-steps">{steps.map((step, index) => <span className={index < 6 ? "done" : index === 6 ? "current" : ""} key={step}><i>{index + 1}</i>{step}</span>)}</div><div className="chain-list">{supplyChain.map((item) => <button key={item.code} className="chain-row" onClick={() => onOpen(item)}><div><b>{item.code}</b><span>{item.product} · {item.quantity}</span></div><div className="chain-stage"><span>{item.stage}</span><i><em style={{ width:`${item.progress}%` }} /></i></div><StatusBadge value={item.status} /><IconArrowUpRight size={17} /></button>)}</div></section>; }
-function StatusBadge({ value }) { return <span className={`chain-status ${/Chờ|Sắp/.test(value) ? "amber" : "green"}`}>{value}</span>; }
-function NotificationPopover({ onClose, onNotice, onOpen, onAll }) { return <div className="notification-popover"><header><div><b>Thông báo</b><span>04 cần xử lý</span></div><button onClick={() => { onClose(); onNotice(); }}>Đánh dấu đã đọc</button></header><div className="notification-list">{notifications.map(({ icon: Icon, tone, title, detail, time, action, module }) => <article key={title}><div className={`notification-icon ${tone}`}><Icon size={18} /></div><div><b>{title}</b><p>{detail}</p><span>{time}</span></div><button onClick={() => onOpen(module)}>{action}</button></article>)}</div><footer><button onClick={onAll}>Xem tất cả thông báo</button></footer></div>; }
-function QuickSearch({ onClose, onGo }) { const [query, setQuery] = useState(""); const options = nav.filter(({ label }) => label.toLowerCase().includes(query.toLowerCase())); return <SideSheet title="Tìm kiếm nhanh" onClose={onClose}><div className="quick-search"><label><IconSearch size={18} /><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Tìm phân hệ hoặc dữ liệu demo" /></label>{options.map(({ label, icon: Icon }) => <button key={label} onClick={() => onGo(label)}><Icon size={18} />{label}<IconArrowUpRight size={16} /></button>)}</div></SideSheet>; }
-function ActivitySheet({ onClose, onSelect }) { return <SideSheet title="Tất cả hoạt động" onClose={onClose}><div className="all-activities">{activities.map((item) => <button className="activity" key={item.title} onClick={() => onSelect({ type:"activity", ...item.detail, module:item.module })}><div className={`activity-icon ${item.tone}`}><item.icon size={18} /></div><div><b>{item.title}</b><p>{item.sub}</p></div><time>{item.time}</time></button>)}</div></SideSheet>; }
-function DashboardDetail({ detail, onClose, onGo }) { if (detail.type === "notifications") return <SideSheet title={detail.title} onClose={onClose}><div className="all-activities">{notifications.map((item) => <article className="notification-detail" key={item.title}><b>{item.title}</b><p>{item.detail}</p><span>{item.time}</span></article>)}</div></SideSheet>; return <SideSheet title={detail.title} onClose={onClose}><div className="dashboard-detail">{detail.period && <span className="detail-period">{detail.period}</span>}<p>{detail.summary || detail.description}</p>{detail.facts && <dl className="detail-facts">{detail.facts.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>}{detail.timeline && <div className="detail-timeline"><b>Dấu vết xử lý</b>{detail.timeline.map(([time, event]) => <div key={`${time}-${event}`}><time>{time}</time><span>{event}</span></div>)}</div>}<button className="primary-btn full" onClick={() => onGo(detail.module || "Sản xuất")}>Mở phân hệ liên quan <IconArrowUpRight size={17} /></button></div></SideSheet>; }
+const metricIcons = {
+  users: IconUsers,
+  map: IconMap2,
+  tractor: IconTractor,
+  money: IconReportMoney,
+};
+function Metric({ icon, label, value, change, tone, onClick }) {
+  const Icon = metricIcons[icon];
+  return (
+    <button className="metric" onClick={onClick}>
+      <div className={`metric-icon ${tone}`}>
+        <Icon size={20} />
+      </div>
+      <p>{label}</p>
+      <div>
+        <strong>{value}</strong>
+        <span className={tone}>
+          <IconArrowUpRight size={14} />
+          {change}
+        </span>
+      </div>
+    </button>
+  );
+}
+function Crop({ name, amount, pct, color, onClick }) {
+  return (
+    <button className="crop" onClick={onClick}>
+      <div>
+        <span style={{ background: color }} />
+        {name}
+        <b>{amount}</b>
+      </div>
+      <div className="track">
+        <i style={{ width: `${pct}%`, background: color }} />
+      </div>
+    </button>
+  );
+}
+function Alert({ title, detail, onClick }) {
+  return (
+    <button className="alert" onClick={onClick}>
+      <div>
+        <IconAlertTriangle size={18} />
+      </div>
+      <p>
+        <b>{title}</b>
+        <span>{detail}</span>
+      </p>
+      <IconArrowUpRight size={17} />
+    </button>
+  );
+}
+function SupplyChainBoard({ onOpen, onGo }) {
+  const steps = [
+    "Thửa đất",
+    "Hộ dân",
+    "Mùa vụ",
+    "Nhật ký",
+    "Thu hoạch",
+    "Đóng gói",
+    "Kho",
+    "Giao nhận",
+    "Tiêu thụ",
+  ];
+  return (
+    <section className="panel supply-chain-panel">
+      <div className="panel-head">
+        <div>
+          <h2>Điều phối chuỗi nông sản</h2>
+          <p>Theo dõi lô đang di chuyển từ vùng trồng đến đơn tiêu thụ</p>
+        </div>
+        <button
+          className="text-btn"
+          onClick={() => onGo("Truy xuất nguồn gốc")}
+        >
+          Mở truy xuất <IconArrowUpRight size={16} />
+        </button>
+      </div>
+      <div className="chain-steps">
+        {steps.map((step, index) => (
+          <span
+            className={index < 6 ? "done" : index === 6 ? "current" : ""}
+            key={step}
+          >
+            <i>{index + 1}</i>
+            {step}
+          </span>
+        ))}
+      </div>
+      <div className="chain-list">
+        {supplyChain.map((item) => (
+          <button
+            key={item.code}
+            className="chain-row"
+            onClick={() => onOpen(item)}
+          >
+            <div>
+              <b>{item.code}</b>
+              <span>
+                {item.product} · {item.quantity}
+              </span>
+            </div>
+            <div className="chain-stage">
+              <span>{item.stage}</span>
+              <i>
+                <em style={{ width: `${item.progress}%` }} />
+              </i>
+            </div>
+            <StatusBadge value={item.status} />
+            <IconArrowUpRight size={17} />
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+function StatusBadge({ value }) {
+  return (
+    <span
+      className={`chain-status ${/Chờ|Sắp/.test(value) ? "amber" : "green"}`}
+    >
+      {value}
+    </span>
+  );
+}
+function ChainDetailDrawer({ item, onClose, onGo }) {
+  const nodes = buildChainNodes(item);
+  const currentIndex = nodes.findIndex((node) => node.current);
+  return (
+    <SideSheet title={`${item.code} · Chuỗi điều phối`} onClose={onClose}>
+      <div className="chain-detail">
+        <div className="chain-detail-head">
+          <span>TRUY XUẤT LÔ ĐANG VẬN HÀNH</span>
+          <h3>{item.product}</h3>
+          <p>{item.note}</p>
+          <div>
+            <b>{item.quantity}</b>
+            <StatusBadge value={item.status} />
+          </div>
+        </div>
+        <div className="chain-kpis">
+          <div>
+            <span>Hoàn thành chuỗi</span>
+            <b>{item.progress}%</b>
+          </div>
+          <div>
+            <span>Công đoạn hiện tại</span>
+            <b>{item.stage}</b>
+          </div>
+          <div>
+            <span>Hồ sơ hợp lệ</span>
+            <b>
+              {nodes.filter((node) => node.status === "Hoàn tất").length}/
+              {nodes.length}
+            </b>
+          </div>
+        </div>
+        <div className="chain-detail-list">
+          {nodes.map((node, index) => (
+            <article
+              className={`${node.current ? "current" : ""} ${node.status === "Hoàn tất" ? "done" : ""}`}
+              key={node.name}
+            >
+              <div className="chain-node">
+                <i>{node.status === "Hoàn tất" ? "✓" : index + 1}</i>
+                <span />
+              </div>
+              <div className="chain-node-body">
+                <header>
+                  <div>
+                    <b>{node.name}</b>
+                    <small>{node.code}</small>
+                  </div>
+                  <StatusBadge value={node.status} />
+                </header>
+                <p>{node.description}</p>
+                <dl>
+                  <div>
+                    <dt>Số liệu</dt>
+                    <dd>{node.metric}</dd>
+                  </div>
+                  <div>
+                    <dt>Phụ trách</dt>
+                    <dd>{node.owner}</dd>
+                  </div>
+                  <div>
+                    <dt>Thời điểm</dt>
+                    <dd>{node.time}</dd>
+                  </div>
+                </dl>
+                {node.current && (
+                  <button
+                    className="outline-btn"
+                    onClick={() => onGo(node.module)}
+                  >
+                    Mở công đoạn này <IconArrowUpRight size={15} />
+                  </button>
+                )}
+              </div>
+            </article>
+          ))}
+        </div>
+        {currentIndex >= 0 && (
+          <button
+            className="primary-btn full"
+            onClick={() => onGo(nodes[currentIndex].module)}
+          >
+            Tiếp tục xử lý: {nodes[currentIndex].name}
+            <IconArrowUpRight size={16} />
+          </button>
+        )}
+      </div>
+    </SideSheet>
+  );
+}
+function buildChainNodes(item) {
+  const order = [
+    "Thửa đất",
+    "Hộ dân",
+    "Mùa vụ",
+    "Nhật ký canh tác",
+    "Thu hoạch",
+    "Đóng gói",
+    "Kho",
+    "Vận chuyển",
+    "Tiêu thụ",
+  ];
+  const normalizedStage = item.stage === "Giao nhận" ? "Vận chuyển" : item.stage === "Kho lạnh" ? "Kho" : item.stage;
+  const stageIndex = Math.max(0, order.indexOf(normalizedStage));
+  const source =
+    item.code === "DG-2408-09"
+      ? {
+          parcel: "TD-112",
+          member: "TV-143 · Lê Hoàng Phúc",
+          season: "MV-TD26-03",
+          logs: "09/10 bản ghi đã xác nhận",
+          harvest: "TH-2408-19 · 2.100 kg",
+          packing: "DG-2408-09 · 1.340/2.100 kg",
+          warehouse: "Chờ nhập kho",
+          transport: "Chưa tạo lệnh",
+          sale: "DH-0826-39 · GreenMart",
+        }
+      : item.code === "SR-2408-16"
+        ? {
+            parcel: "TD-042, TD-057",
+            member: "TV-102 · Nguyễn Văn Thành",
+            season: "MV-TD26-01",
+            logs: "12/12 bản ghi đã xác nhận",
+            harvest: "TH-2408-16, TH-2408-17 · 2.230 kg",
+            packing: "DG-2408-10, DG-2408-12 · 2.230 kg",
+            warehouse: "SR-2408-16 · 1.250 kg",
+            transport: "LXK-0826-18 · chờ xe",
+            sale: "DH-0826-41 · đã phân bổ",
+          }
+        : item.code === "DH-0826-41"
+          ? {
+              parcel: "TD-042, TD-057",
+              member: "02 hộ cung ứng",
+              season: "MV-TD26-01",
+              logs: "24/24 bản ghi đã xác nhận",
+              harvest: "03 phiếu · 8.500 kg",
+              packing: "08 lệnh · 8.500 kg",
+              warehouse: "03 lô đã giữ chỗ",
+              transport: "LXK-0826-21 · chờ xác nhận",
+              sale: "DH-0826-41 · 8.500 kg",
+            }
+          : {
+              parcel: "TD-042",
+              member: "TV-102 · Nguyễn Văn Thành",
+              season: "MV-TD26-01",
+              logs: "12/12 bản ghi đã xác nhận",
+              harvest: "TH-2408-16 · 1.250 kg",
+              packing: "Chờ tạo lệnh",
+              warehouse: "Chờ nhập kho",
+              transport: "Chưa tạo lệnh",
+              sale: "Chưa tạo đơn",
+            };
+  const values = [
+    [
+      "Thửa đất",
+      source.parcel,
+      "Diện tích, vùng trồng và tiêu chuẩn đã số hóa",
+      "GIS",
+    ],
+    [
+      "Hộ dân",
+      source.member,
+      "Chủ thể cung ứng đã xác thực thuộc HTX",
+      "Hộ dân & thành viên",
+    ],
+    ["Mùa vụ", source.season, "Kế hoạch sản xuất đã phê duyệt", "Sản xuất"],
+    [
+      "Nhật ký canh tác",
+      source.logs,
+      "Vật tư, cách ly và nhật ký được đối chiếu",
+      "Vật tư & nhật ký",
+    ],
+    [
+      "Thu hoạch",
+      source.harvest,
+      "Phiếu cân hiện trường và nghiệm thu khối lượng",
+      "Thu hoạch",
+    ],
+    [
+      "Đóng gói",
+      source.packing,
+      "Phân loại, quy cách, tem QR và kiểm tra chất lượng",
+      "Đóng gói",
+    ],
+    [
+      "Kho",
+      source.warehouse,
+      "Phiếu nhập kho, điều kiện bảo quản và hạn xử lý",
+      "Kho & tiêu thụ",
+    ],
+    [
+      "Vận chuyển",
+      source.transport,
+      "Lệnh xuất kho, xe và biên bản giao nhận",
+      "Kho & tiêu thụ",
+    ],
+    [
+      "Tiêu thụ",
+      source.sale,
+      "Đơn hàng, hợp đồng, đối soát và thanh toán",
+      "Kho & tiêu thụ",
+    ],
+  ];
+  return values.map(([name, metric, description, module], index) => ({
+    name,
+    code: `${String(index + 1).padStart(2, "0")} · ${index < 4 ? "Nguồn gốc" : index < 6 ? "Sơ chế" : "Thương mại"}`,
+    metric,
+    description,
+    module,
+    owner:
+      index < 2
+        ? "Tổ vùng trồng"
+        : index < 4
+          ? "Điều phối sản xuất"
+          : index < 6
+            ? "Tổ sơ chế & QC"
+            : "Kho & tiêu thụ",
+    time:
+      index < stageIndex
+        ? "Đã xác nhận"
+        : index === stageIndex
+          ? "Đang cập nhật"
+          : "Chưa phát sinh",
+    status:
+      index < stageIndex
+        ? "Hoàn tất"
+        : index === stageIndex
+          ? item.status
+          : "Chờ xử lý",
+    current: index === stageIndex,
+  }));
+}
+function NotificationPopover({ onClose, onNotice, onOpen, onAll }) {
+  return (
+    <div className="notification-popover">
+      <header>
+        <div>
+          <b>Thông báo</b>
+          <span>04 cần xử lý</span>
+        </div>
+        <button
+          onClick={() => {
+            onClose();
+            onNotice();
+          }}
+        >
+          Đánh dấu đã đọc
+        </button>
+      </header>
+      <div className="notification-list">
+        {notifications.map(
+          ({ icon: Icon, tone, title, detail, time, action, module }) => (
+            <article key={title}>
+              <div className={`notification-icon ${tone}`}>
+                <Icon size={18} />
+              </div>
+              <div>
+                <b>{title}</b>
+                <p>{detail}</p>
+                <span>{time}</span>
+              </div>
+              <button onClick={() => onOpen(module)}>{action}</button>
+            </article>
+          ),
+        )}
+      </div>
+      <footer>
+        <button onClick={onAll}>Xem tất cả thông báo</button>
+      </footer>
+    </div>
+  );
+}
+function QuickSearch({ onClose, onGo }) {
+  const [query, setQuery] = useState("");
+  const options = nav.filter(({ label }) =>
+    label.toLowerCase().includes(query.toLowerCase()),
+  );
+  return (
+    <SideSheet title="Tìm kiếm nhanh" onClose={onClose}>
+      <div className="quick-search">
+        <label>
+          <IconSearch size={18} />
+          <input
+            autoFocus
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Tìm phân hệ hoặc dữ liệu demo"
+          />
+        </label>
+        {options.map(({ label, icon: Icon }) => (
+          <button key={label} onClick={() => onGo(label)}>
+            <Icon size={18} />
+            {label}
+            <IconArrowUpRight size={16} />
+          </button>
+        ))}
+      </div>
+    </SideSheet>
+  );
+}
+function ActivitySheet({ onClose, onSelect }) {
+  return (
+    <SideSheet title="Tất cả hoạt động" onClose={onClose}>
+      <div className="all-activities">
+        {activities.map((item) => (
+          <button
+            className="activity"
+            key={item.title}
+            onClick={() =>
+              onSelect({
+                type: "activity",
+                ...item.detail,
+                module: item.module,
+              })
+            }
+          >
+            <div className={`activity-icon ${item.tone}`}>
+              <item.icon size={18} />
+            </div>
+            <div>
+              <b>{item.title}</b>
+              <p>{item.sub}</p>
+            </div>
+            <time>{item.time}</time>
+          </button>
+        ))}
+      </div>
+    </SideSheet>
+  );
+}
+function DashboardDetail({ detail, onClose, onGo }) {
+  if (detail.type === "notifications")
+    return (
+      <SideSheet title={detail.title} onClose={onClose}>
+        <div className="all-activities">
+          {notifications.map((item) => (
+            <article className="notification-detail" key={item.title}>
+              <b>{item.title}</b>
+              <p>{item.detail}</p>
+              <span>{item.time}</span>
+            </article>
+          ))}
+        </div>
+      </SideSheet>
+    );
+  return (
+    <SideSheet title={detail.title} onClose={onClose}>
+      <div className="dashboard-detail">
+        {detail.period && (
+          <span className="detail-period">{detail.period}</span>
+        )}
+        <p>{detail.summary || detail.description}</p>
+        {detail.facts && (
+          <dl className="detail-facts">
+            {detail.facts.map(([label, value]) => (
+              <div key={label}>
+                <dt>{label}</dt>
+                <dd>{value}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
+        {detail.timeline && (
+          <div className="detail-timeline">
+            <b>Dấu vết xử lý</b>
+            {detail.timeline.map(([time, event]) => (
+              <div key={`${time}-${event}`}>
+                <time>{time}</time>
+                <span>{event}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        <button
+          className="primary-btn full"
+          onClick={() => onGo(detail.module || "Sản xuất")}
+        >
+          Mở phân hệ liên quan <IconArrowUpRight size={17} />
+        </button>
+      </div>
+    </SideSheet>
+  );
+}
