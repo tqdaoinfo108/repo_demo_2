@@ -952,9 +952,6 @@ function AiProductionChat() {
             </div>
             <div>
               <b>Trợ lý vận hành AI</b>
-              <span>
-                {proxyUrl ? "Kết nối qua API proxy" : "Phân tích dữ liệu demo"}
-              </span>
             </div>
             <button onClick={() => setOpen(false)} aria-label="Đóng trợ lý AI">
               <IconX size={17} />
