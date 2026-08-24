@@ -21,9 +21,14 @@ const nav = [
   { label: "Hợp tác xã", icon: IconBuildingCommunity },
   { label: "Hộ dân & thành viên", icon: IconUsers },
   { label: "Đất đai & GIS", icon: IconMap2 },
+  { label: "Tài sản HTX", icon: IconTractor },
   { label: "Sản xuất", icon: IconPlant2 },
+  { label: "Vật tư & nhật ký", icon: IconClipboardData },
+  { label: "Truy xuất nguồn gốc", icon: IconQrcode },
   { label: "Kho & tiêu thụ", icon: IconPackage },
   { label: "Tài chính", icon: IconWallet },
+  { label: "Vốn góp & cổ tức", icon: IconReportMoney },
+  { label: "Truyền thông nội bộ", icon: IconBell },
   { label: "Hồ sơ & tài liệu", icon: IconFileCertificate },
 ];
 

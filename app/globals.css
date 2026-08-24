@@ -37,3 +37,6 @@
 
 /* Drawers and dialogs must cover Leaflet panes and map controls. */
 .sheet-layer,.modal-layer{z-index:2000}
+
+/* The complete operating model has more modules than one viewport. */
+.sidebar{overflow-y:auto}
