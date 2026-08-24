@@ -27,10 +27,13 @@ import {
   IconAlertTriangle,
   IconX,
   IconMenu2,
+  IconMessageChatbot,
   IconQrcode,
   IconClipboardCheck,
   IconFileAlert,
   IconShieldCheck,
+  IconSend,
+  IconSparkles,
   IconCreditCard,
 } from "@tabler/icons-react";
 import MapWidget from "./map-widget";
@@ -713,9 +716,35 @@ export default function Dashboard() {
             }}
           />
         )}
+      <AiProductionChat />
     </main>
   );
 }
+
+function AiProductionChat() {
+  const [open, setOpen] = useState(false);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [messages, setMessages] = useState([{ role:"assistant", content:"Tôi có thể phân tích tiến độ mùa vụ, rủi ro nhật ký, QC, tồn kho và đơn tiêu thụ từ dữ liệu dashboard." }]);
+  const proxyUrl = process.env.NEXT_PUBLIC_AI_PROXY_URL;
+  const ask = async (question) => {
+    const prompt = question.trim(); if (!prompt || loading) return;
+    setInput(""); setMessages((items) => [...items, { role:"user", content:prompt }]); setLoading(true);
+    try {
+      let answer = "";
+      if (proxyUrl) {
+        const response = await fetch(proxyUrl, { method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify({ messages:[{ role:"system", content:"Bạn là trợ lý vận hành HTX. Chỉ phân tích dữ liệu được cung cấp, trả lời tiếng Việt ngắn gọn, có rủi ro và hành động ưu tiên." }, { role:"user", content:`Dữ liệu vận hành: ${aiContext()}\n\nYêu cầu: ${prompt}` }] }) });
+        if (!response.ok) throw new Error("AI proxy unavailable");
+        const payload = await response.json(); answer = payload?.choices?.[0]?.message?.content || payload?.message || payload?.content || "";
+      }
+      setMessages((items) => [...items, { role:"assistant", content:answer || localInsight(prompt) }]);
+    } catch { setMessages((items) => [...items, { role:"assistant", content:localInsight(prompt) }]); }
+    finally { setLoading(false); }
+  };
+  return <div className={`ai-chat ${open ? "open" : ""}`}>{open && <section className="ai-chat-window"><header><div className="ai-avatar"><IconSparkles size={17} /></div><div><b>Trợ lý vận hành AI</b><span>{proxyUrl ? "Kết nối qua API proxy" : "Phân tích dữ liệu demo"}</span></div><button onClick={() => setOpen(false)} aria-label="Đóng trợ lý AI"><IconX size={17} /></button></header><div className="ai-suggestions">{["Rủi ro cần ưu tiên hôm nay", "Phân tích tiến độ sản xuất", "Tình hình QC và kho"].map((item) => <button key={item} onClick={() => ask(item)}>{item}</button>)}</div><div className="ai-messages" aria-live="polite">{messages.map((item, index) => <article className={item.role} key={`${item.role}-${index}`}><p>{item.content}</p></article>)}{loading && <article className="assistant"><p>Đang tổng hợp dữ liệu vận hành…</p></article>}</div><form onSubmit={(event) => { event.preventDefault(); ask(input); }}><input value={input} onChange={(event) => setInput(event.target.value)} placeholder="Hỏi tình hình sản xuất…" /><button disabled={!input.trim() || loading} aria-label="Gửi câu hỏi"><IconSend size={16} /></button></form><small>Không gửi mã định danh hoặc dữ liệu nhạy cảm vào AI.</small></section>}<button className="ai-chat-trigger" onClick={() => setOpen((value) => !value)} aria-label={open ? "Đóng chatbot AI" : "Mở chatbot AI"}><IconMessageChatbot size={23} /><span>AI phân tích</span></button></div>;
+}
+function aiContext() { return "Mùa vụ Thu Đông 2026: 2.684/3.274 tấn, hoàn thành 82%. Nhật ký đúng hạn 184/196; 12 bản ghi chờ xác nhận. QC/kiểm nghiệm đạt 8/10 lô; 2 lô chờ kết quả. Kho có lô SR-2408-16 1.250 kg cần ưu tiên xuất trong 48 giờ. Giao nhận 6/8 chuyến. Hợp đồng đã đối soát 14/16; công nợ quá hạn 62,8 triệu đồng."; }
+function localInsight(question) { const text = question.toLowerCase(); if (/qc|kiểm nghiệm|kho/.test(text)) return "Ưu tiên 1: hoàn tất kết quả QC cho 2 lô trước khi xuất. SR-2408-16 còn 1.250 kg và hạn bảo quản 48 giờ, nên phân bổ ngay cho DH-0826-41. Kiểm tra ảnh đóng gói và nhiệt độ kho trước khi lập lệnh xuất."; if (/tiến độ|sản xuất|mùa vụ/.test(text)) return "Tiến độ vụ Thu Đông đạt 82% (2.684/3.274 tấn). Điểm nghẽn là 12 nhật ký chờ xác nhận và 332 tấn chờ nghiệm thu. Hành động hôm nay: tổ trưởng xác nhận nhật ký Tân Thuận, chốt phiếu cân và cập nhật dự báo các thửa đến lịch thu hoạch."; return "Ba việc cần ưu tiên hôm nay: (1) xác nhận 12 nhật ký và 3 phiếu thu hoạch chờ nghiệm thu; (2) hoàn tất QC cho 2 lô, ưu tiên SR-2408-16; (3) chốt 2 chuyến giao nhận và đối soát công nợ 62,8 triệu đồng."; }
 
 const metricIcons = {
   users: IconUsers,
