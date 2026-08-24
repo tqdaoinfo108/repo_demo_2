@@ -23,7 +23,9 @@ export default function MapWidget({ selectedParcel, onSelect }) {
       // dashboard-to-GIS transition before creating a new map instance.
       if (ref.current._leaflet_id) ref.current._leaflet_id = null;
       map = L.map(ref.current, { zoomControl: false, attributionControl: false }).setView([10.452478, 105.682255], 13);
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
+      const osmLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
+      const planningLayers = L.layerGroup().addTo(map);
+      const parcelLayers = L.layerGroup().addTo(map);
       L.control.zoom({ position: "bottomright" }).addTo(map);
       L.circleMarker([10.452478, 105.682255], { radius: 7, color: "#174f35", weight: 2, fillColor: "#d5e967", fillOpacity: 1 })
         .bindTooltip("TP Cao Lãnh · Đồng Tháp", { direction: "top", offset: [0, -8] })
@@ -32,8 +34,27 @@ export default function MapWidget({ selectedParcel, onSelect }) {
         const layer = L.polygon(parcel.points, { color: parcel.color, weight: 2, fillColor: parcel.color, fillOpacity: 0.28 });
         layer.on("click", () => onSelect(parcel));
         layer.bindTooltip(`${parcel.id} · ${parcel.crop}`, { sticky: true });
-        layer.addTo(map);
+        layer.addTo(parcelLayers);
       });
+      try {
+        const assetRoot = new URL("maps/cao-lanh-2022/", window.location.href);
+        const response = await fetch(new URL("doc.kml", assetRoot));
+        if (!response.ok) throw new Error("Không thể tải lớp quy hoạch");
+        const document = new DOMParser().parseFromString(await response.text(), "application/xml");
+        const overlays = Array.from(document.getElementsByTagNameNS("http://www.opengis.net/kml/2.2", "GroundOverlay"));
+        overlays.forEach((overlay, index) => {
+          const href = overlay.getElementsByTagNameNS("http://www.opengis.net/kml/2.2", "href")[0]?.textContent?.trim();
+          const box = overlay.getElementsByTagNameNS("http://www.opengis.net/kml/2.2", "LatLonBox")[0];
+          if (!href || !box) return;
+          const read = (name) => Number(box.getElementsByTagNameNS("http://www.opengis.net/kml/2.2", name)[0]?.textContent);
+          const north = read("north"); const south = read("south"); const east = read("east"); const west = read("west");
+          if (![north, south, east, west].every(Number.isFinite)) return;
+          L.imageOverlay(new URL(href, assetRoot).toString(), [[south, west], [north, east]], { opacity: 0.52, interactive: false, zIndex: 20 + index }).addTo(planningLayers);
+        });
+        L.control.layers({ "OpenStreetMap": osmLayer }, { "QHSDĐ TP Cao Lãnh 2022": planningLayers, "Thửa đất mô phỏng": parcelLayers }, { collapsed: false, position: "topright" }).addTo(map);
+      } catch (error) {
+        L.control.layers({ "OpenStreetMap": osmLayer }, { "Thửa đất mô phỏng": parcelLayers }, { collapsed: false, position: "topright" }).addTo(map);
+      }
     }
     init();
     return () => { disposed = true; map?.remove(); };
