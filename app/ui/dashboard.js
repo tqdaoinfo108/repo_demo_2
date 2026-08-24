@@ -22,6 +22,8 @@ import {
   IconWallet,
   IconArrowUpRight,
   IconCircleCheck,
+  IconChevronLeft,
+  IconChevronRight,
   IconAlertTriangle,
   IconX,
   IconMenu2,
@@ -149,6 +151,7 @@ export default function Dashboard() {
   const [notice, setNotice] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [mobileNav, setMobileNav] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [quickSearchOpen, setQuickSearchOpen] = useState(false);
   const [activityOpen, setActivityOpen] = useState(false);
   const [detail, setDetail] = useState(null);
@@ -173,8 +176,8 @@ export default function Dashboard() {
   );
 
   return (
-    <main className="app-shell">
-      <aside className={`sidebar ${mobileNav ? "open" : ""}`}>
+    <main className={`app-shell ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}>
+      <aside className={`sidebar ${mobileNav ? "open" : ""} ${sidebarCollapsed ? "collapsed" : ""}`}>
         <div className="brand">
           <div className="brand-mark">
             <IconLeaf size={22} />
@@ -184,6 +187,7 @@ export default function Dashboard() {
             <span>Đồng Tháp</span>
           </div>
         </div>
+        <button className="sidebar-toggle" onClick={() => setSidebarCollapsed((value) => !value)} aria-label={sidebarCollapsed ? "Mở rộng menu" : "Thu gọn menu"} title={sidebarCollapsed ? "Mở rộng menu" : "Thu gọn menu"}>{sidebarCollapsed ? <IconChevronRight size={18} /> : <IconChevronLeft size={18} />}</button>
         <button
           className="org-switch"
           onClick={() => setUtility("Chuyển đơn vị làm việc")}
@@ -196,7 +200,7 @@ export default function Dashboard() {
           <IconChevronDown size={18} />
         </button>
         <nav className="sidebar-nav" aria-label="Phân hệ vận hành">
-          {navGroups.map((group) => <section className="nav-group" key={group.title}><h2>{group.title}</h2>{group.items.map(({ label, icon: Icon }) => <button key={label} onClick={() => { setActive(label); setUtility(null); setMobileNav(false); }} className={active === label && !viewingSettings ? "nav-item active" : "nav-item"}><Icon size={18} stroke={1.8} />{label}</button>)}</section>)}
+          {navGroups.map((group) => <section className="nav-group" key={group.title}><h2>{group.title}</h2>{group.items.map(({ label, icon: Icon }) => <button key={label} title={label} aria-label={label} onClick={() => { setActive(label); setUtility(null); setMobileNav(false); }} className={active === label && !viewingSettings ? "nav-item active" : "nav-item"}><Icon size={18} stroke={1.8} />{label}</button>)}</section>)}
         </nav>
         <div className="sidebar-footer">
           <button
