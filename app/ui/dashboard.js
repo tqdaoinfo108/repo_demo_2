@@ -12,6 +12,7 @@ import {
 import MapWidget from "./map-widget";
 import ModuleView from "./module-view";
 import SystemSettings from "./system-settings";
+import ProfileSheet from "./profile-sheet";
 import { ActionModal, SideSheet } from "./shared-ui";
 import { activities, alerts, controlChecks, cropProgress, dashboardKpis, orderSnapshot } from "./dashboard-data";
 
@@ -88,7 +89,8 @@ export default function Dashboard() {
       {quickSearchOpen && <QuickSearch onClose={() => setQuickSearchOpen(false)} onGo={(module) => { setActive(module); setQuickSearchOpen(false); }} />}
       {activityOpen && <ActivitySheet onClose={() => setActivityOpen(false)} onSelect={(item) => { setActivityOpen(false); setDetail({ type:"activity", ...item }); }} />}
       {detail && <DashboardDetail detail={detail} onClose={() => setDetail(null)} onGo={(module) => { setDetail(null); setActive(module); }} />}
-      {utility && utility !== "Cấu hình hệ thống" && <ActionModal title={utility} description={utility === "Cập nhật dữ liệu" ? "Dữ liệu mô phỏng đã sẵn sàng đồng bộ. Xác nhận để cập nhật thời điểm dữ liệu mới nhất." : "Đây là màn hình thao tác mẫu cho buổi demo. Xác nhận để lưu thay đổi ở trạng thái nháp."} onClose={() => setUtility(null)} onConfirm={() => { setUtility(null); setNotice(true); }} />}
+      {utility === "Tài khoản quản trị" && <ProfileSheet onClose={() => setUtility(null)} onNotice={() => setNotice(true)} />}
+      {utility && utility !== "Cấu hình hệ thống" && utility !== "Tài khoản quản trị" && <ActionModal title={utility} description={utility === "Cập nhật dữ liệu" ? "Dữ liệu mô phỏng đã sẵn sàng đồng bộ. Xác nhận để cập nhật thời điểm dữ liệu mới nhất." : "Đây là màn hình thao tác mẫu cho buổi demo. Xác nhận để lưu thay đổi ở trạng thái nháp."} onClose={() => setUtility(null)} onConfirm={() => { setUtility(null); setNotice(true); }} />}
     </main>
   );
 }
