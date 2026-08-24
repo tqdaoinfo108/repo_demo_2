@@ -45,26 +45,13 @@ import {
   orderSnapshot,
 } from "./dashboard-data";
 
-const nav = [
-  { label: "Tổng quan", icon: IconHome },
-  { label: "Hợp tác xã", icon: IconBuildingCommunity },
-  { label: "Hộ dân & thành viên", icon: IconUsers },
-  { label: "Đất đai & GIS", icon: IconMap2 },
-  { label: "Tài sản HTX", icon: IconTractor },
-  { label: "Sản xuất", icon: IconPlant2 },
-  { label: "Vật tư & nhật ký", icon: IconClipboardData },
-  { label: "Truy xuất nguồn gốc", icon: IconQrcode },
-  { label: "Thu hoạch", icon: IconShoppingBag },
-  { label: "Đóng gói", icon: IconPackage },
-  { label: "Chất lượng & kiểm nghiệm", icon: IconClipboardCheck },
-  { label: "Kho & tiêu thụ", icon: IconPackage },
-  { label: "Vận chuyển & giao nhận", icon: IconTractor },
-  { label: "Hợp đồng & đối soát", icon: IconCreditCard },
-  { label: "Tài chính", icon: IconWallet },
-  { label: "Vốn góp & cổ tức", icon: IconReportMoney },
-  { label: "Truyền thông nội bộ", icon: IconBell },
-  { label: "Hồ sơ & tài liệu", icon: IconFileCertificate },
+const navGroups = [
+  { title:"Điều hành", items:[{ label:"Tổng quan", icon:IconHome }, { label:"Hợp tác xã", icon:IconBuildingCommunity }, { label:"Hộ dân & thành viên", icon:IconUsers }, { label:"Tài sản HTX", icon:IconTractor }] },
+  { title:"Vùng trồng & sản xuất", items:[{ label:"Đất đai & GIS", icon:IconMap2 }, { label:"Sản xuất", icon:IconPlant2 }, { label:"Vật tư & nhật ký", icon:IconClipboardData }, { label:"Thu hoạch", icon:IconShoppingBag }] },
+  { title:"Chuỗi giá trị", items:[{ label:"Đóng gói", icon:IconPackage }, { label:"Chất lượng & kiểm nghiệm", icon:IconClipboardCheck }, { label:"Kho & tiêu thụ", icon:IconPackage }, { label:"Vận chuyển & giao nhận", icon:IconTractor }, { label:"Hợp đồng & đối soát", icon:IconCreditCard }, { label:"Truy xuất nguồn gốc", icon:IconQrcode }] },
+  { title:"Tài chính & hồ sơ", items:[{ label:"Tài chính", icon:IconWallet }, { label:"Vốn góp & cổ tức", icon:IconReportMoney }, { label:"Hồ sơ & tài liệu", icon:IconFileCertificate }, { label:"Truyền thông nội bộ", icon:IconBell }] },
 ];
+const nav = navGroups.flatMap((group) => group.items);
 
 const initialParcel = {
   id: "TD-042",
@@ -208,25 +195,8 @@ export default function Dashboard() {
           </div>
           <IconChevronDown size={18} />
         </button>
-        <nav>
-          {nav.map(({ label, icon: Icon }) => (
-            <button
-              key={label}
-              onClick={() => {
-                setActive(label);
-                setUtility(null);
-                setMobileNav(false);
-              }}
-              className={
-                active === label && !viewingSettings
-                  ? "nav-item active"
-                  : "nav-item"
-              }
-            >
-              <Icon size={19} stroke={1.8} />
-              {label}
-            </button>
-          ))}
+        <nav className="sidebar-nav" aria-label="Phân hệ vận hành">
+          {navGroups.map((group) => <section className="nav-group" key={group.title}><h2>{group.title}</h2>{group.items.map(({ label, icon: Icon }) => <button key={label} onClick={() => { setActive(label); setUtility(null); setMobileNav(false); }} className={active === label && !viewingSettings ? "nav-item active" : "nav-item"}><Icon size={18} stroke={1.8} />{label}</button>)}</section>)}
         </nav>
         <div className="sidebar-footer">
           <button
