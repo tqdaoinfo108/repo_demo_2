@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "node server/index.js",
+    "start:web": "next start",
     "lint": "next lint",
     "api": "node --env-file=.env server/index.js",
     "db:init": "node --env-file=.env server/init.js",

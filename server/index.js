@@ -7,11 +7,12 @@ import { getDatabase } from "./database.js";
 import { collectionDefinitions } from "./schema.js";
 
 const app = express();
-const port = Number(process.env.API_PORT || 4000);
+const port = Number(process.env.PORT || process.env.API_PORT || 4000);
 const collections = new Set(collectionDefinitions.map(([name]) => name));
 const jwtSecret = process.env.JWT_SECRET || "development-only-change-this-secret";
 
-app.use(cors({ origin: process.env.CORS_ORIGIN?.split(",") || true }));
+const corsOrigin = process.env.CORS_ORIGIN;
+app.use(cors({ origin:!corsOrigin || corsOrigin === "*" ? true : corsOrigin.split(",") }));
 app.use(express.json({ limit: "1mb" }));
 
 function collectionName(value) {
