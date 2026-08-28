@@ -5,7 +5,7 @@ let database;
 
 export async function getDatabase() {
   if (database) return database;
-  const uri = process.env.MONGODB_URI?.trim();
+  const uri = process.env.MONGODB_URI?.trim().replace(/^MONGODB_URI\s*=\s*/i, "").replace(/^['"]|['"]$/g, "");
   if (!uri) throw new Error("MONGODB_URI is required. Add the full MongoDB Atlas connection string to .env.");
   if (!/^mongodb(\+srv)?:\/\//.test(uri)) throw new Error("MONGODB_URI must begin with mongodb:// or mongodb+srv://. In Render, paste only the URI value (without MONGODB_URI=, quotes, or placeholders).");
   client = new MongoClient(uri, { serverSelectionTimeoutMS: 8000 });

@@ -35,6 +35,8 @@ app.get("/health", async (_request, response) => {
   catch (error) { response.status(503).json({ ok:false, error:error.message }); }
 });
 
+app.get("/", (_request, response) => response.json({ service:"HTX Số API", health:"/health", api:"/api/auth/login" }));
+
 app.post("/api/auth/login", async (request, response, next) => {
   try {
     const { email, password } = request.body || {}; if (!email || !password) return response.status(400).json({ error:"Email and password are required" });
