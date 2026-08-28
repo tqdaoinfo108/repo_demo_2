@@ -16,5 +16,6 @@ export async function apiRequest(path, method, body) {
 
 export const apiPost = (path, body) => apiRequest(path, "POST", body);
 export const apiPut = (path, body) => apiRequest(path, "PUT", body);
+export const apiDelete = (path) => apiRequest(path, "DELETE");
 
 export { API_URL };

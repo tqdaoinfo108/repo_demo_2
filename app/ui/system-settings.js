@@ -14,7 +14,7 @@ import {
   IconShieldCheck,
 } from "@tabler/icons-react";
 import { FormModal, Status } from "./shared-ui";
-import { apiGet } from "../lib/api";
+import { apiGet, apiPost } from "../lib/api";
 
 const users = [
   ["Nguyễn Minh Tâm", "Quản trị HTX", "Toàn hệ thống", "Đang hoạt động"],
@@ -420,9 +420,22 @@ export default function SystemSettings({ onClose, onNotice }) {
         <SettingsForm
           type={modal}
           onClose={() => setModal(null)}
-          onSubmit={() => {
-            setModal(null);
-            onNotice();
+          onSubmit={async (values) => {
+            try {
+              if (modal === "notification") {
+                await apiPost("/api/admin/notifications", {
+                  code: values.code,
+                  title: values.title,
+                  message: values.message,
+                  channel: values.channel,
+                  target: { type: values.recipient === "Toàn hệ thống" ? "all" : "role", values:[] },
+                });
+              } else {
+                await apiPost("/api/auditEvents", { eventId:`CFG-${Date.now()}`, cooperativeCode:"HTX-001", actorCode:"USR-001", action:`Cập nhật cấu hình: ${modal}`, detail:values, createdAt:new Date() });
+              }
+              setModal(null);
+              onNotice();
+            } catch (reason) { setDataError(reason.message); }
           }}
         />
       )}
@@ -547,7 +560,9 @@ function SettingsForm({ type, onClose, onSubmit }) {
     notification: {
       title: "Tạo thông báo hệ thống",
       fields: [
+        { name: "code", label: "Mã thông báo", value: `TB-${Date.now()}`, required: true },
         { name: "title", label: "Tiêu đề thông báo", required: true, wide: true },
+        { name: "message", label: "Nội dung thông báo", required: true, wide: true },
         { name: "recipient", label: "Nhóm nhận", type: "select", options: ["Toàn hệ thống", "Theo Hợp tác xã", "Theo vùng trồng", "Theo hộ dân"], required: true },
         { name: "channel", label: "Kênh gửi", type: "select", options: ["Ứng dụng", "Email", "SMS", "Ứng dụng + SMS"], required: true },
       ],

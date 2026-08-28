@@ -231,5 +231,15 @@ app.put("/api/:collection/:code", async (request, response, next) => {
   } catch (error) { next(error); }
 });
 
+app.delete("/api/:collection/:code", requireAdmin, async (request, response, next) => {
+  try {
+    const name = collectionName(request.params.collection); if (!name) return response.status(404).json({ error:"Unknown collection" });
+    const field = collectionDefinitions.find(([collection]) => collection === name)?.[1] || "code";
+    const result = await (await getDatabase()).collection(name).deleteOne({ [field]:request.params.code, cooperativeCode:request.auth.user.cooperativeCode });
+    if (!result.deletedCount) return response.status(404).json({ error:"Record not found or outside your cooperative" });
+    response.status(204).end();
+  } catch (error) { next(error); }
+});
+
 app.use((error, _request, response, _next) => response.status(error.code === 11000 ? 409 : 500).json({ error:error.code === 11000 ? "Duplicate record" : "Server error", detail:error.message }));
 app.listen(port, () => console.log(`HTX MongoDB API listening on http://localhost:${port}`));

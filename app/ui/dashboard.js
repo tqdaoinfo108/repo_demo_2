@@ -206,6 +206,23 @@ const supplyChain = [
   },
 ];
 
+function downloadDashboardReport(dashboard, cooperative) {
+  const rows = [
+    ["BÁO CÁO VẬN HÀNH HTX", cooperative.name],
+    ["Mã HTX", cooperative.code],
+    ["Thời điểm xuất", new Intl.DateTimeFormat("vi-VN", { dateStyle:"short", timeStyle:"short" }).format(new Date())],
+    [],
+    ["Chỉ số", "Giá trị", "Diễn giải"],
+    ...dashboard.kpis.map((item) => [item.label, item.value, item.note || ""]),
+  ];
+  const csv = `\ufeff${rows.map((row) => row.map((value) => `"${String(value ?? "").replaceAll('"', '""')}"`).join(",")).join("\n")}`;
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(new Blob([csv], { type:"text/csv;charset=utf-8" }));
+  link.download = `bao-cao-van-hanh-${cooperative.code}-${new Date().toISOString().slice(0, 10)}.csv`;
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
+
 export default function Dashboard() {
   const [active, setActive] = useState("Tổng quan");
   const [parcel, setParcel] = useState(initialParcel);
@@ -223,6 +240,7 @@ export default function Dashboard() {
   const [detail, setDetail] = useState(null);
   const [chainDetail, setChainDetail] = useState(null);
   const [utility, setUtility] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const selectParcel = useCallback((value) => setParcel(value), []);
   const viewingSettings = utility === "Cấu hình hệ thống";
   const pageTitle = viewingSettings
@@ -240,16 +258,23 @@ export default function Dashboard() {
       }).format(new Date(2026, 7, 18)),
     [],
   );
-  useEffect(() => {
-    let cancelled = false;
+  const loadDashboard = useCallback(async () => {
     const cooperativeCode = selectedCoop.code;
-    Promise.all([
+    setIsRefreshing(true);
+    try {
+      const [overview, orders, lots, quality, finance, audit] = await Promise.all([
       apiGet(`/api/dashboard/overview?cooperativeCode=${cooperativeCode}`), apiGet(`/api/salesOrders?cooperativeCode=${cooperativeCode}`), apiGet(`/api/inventoryLots?cooperativeCode=${cooperativeCode}`), apiGet(`/api/qualityInspections?cooperativeCode=${cooperativeCode}`), apiGet(`/api/financialEntries?cooperativeCode=${cooperativeCode}`), apiGet(`/api/auditEvents?cooperativeCode=${cooperativeCode}`),
-    ]).then(([overview, orders, lots, quality, finance, audit]) => {
-      if (!cancelled) { setDashboardSource({ overview, orders:orders.data, lots:lots.data, quality:quality.data, finance:finance.data, audit:audit.data }); setDashboardError(""); }
-    }).catch(() => { if (!cancelled) { setDashboardSource(emptyDashboardSource(cooperativeCode)); setDashboardError("Không thể kết nối API dữ liệu. Kiểm tra API_URL và trạng thái MongoDB."); } });
-    return () => { cancelled = true; };
+      ]);
+      setDashboardSource({ overview, orders:orders.data, lots:lots.data, quality:quality.data, finance:finance.data, audit:audit.data });
+      setDashboardError("");
+      return true;
+    } catch {
+      setDashboardSource(emptyDashboardSource(cooperativeCode));
+      setDashboardError("Không thể kết nối API dữ liệu. Kiểm tra API_URL và trạng thái MongoDB.");
+      return false;
+    } finally { setIsRefreshing(false); }
   }, [selectedCoop.code]);
+  useEffect(() => { loadDashboard(); }, [loadDashboard]);
   useEffect(() => { const token = window.localStorage.getItem("htx_auth_token"); if (!token) return; const stream = new EventSource(`${API_URL}/api/notifications/stream?token=${encodeURIComponent(token)}`); stream.addEventListener("initial", (event) => setLiveNotifications(JSON.parse(event.data))); stream.addEventListener("notification", (event) => setLiveNotifications((items) => [JSON.parse(event.data), ...items])); return () => stream.close(); }, []);
   const dashboard = useMemo(() => buildDashboardView(dashboardSource), [dashboardSource]);
 
@@ -452,17 +477,18 @@ export default function Dashboard() {
             <div className="heading-actions">
               <button
                 className="outline-btn"
-                onClick={() => setUtility("Xuất báo cáo vận hành")}
+                onClick={() => downloadDashboardReport(dashboard, selectedCoop)}
               >
                 <IconFileCertificate size={18} />
                 Xuất báo cáo
               </button>
               <button
                 className="primary-btn"
-                onClick={() => setUtility("Cập nhật dữ liệu")}
+                disabled={isRefreshing}
+                onClick={async () => { const refreshed = await loadDashboard(); if (refreshed) setNotice(true); }}
               >
                 <IconClipboardData size={18} />
-                Cập nhật dữ liệu
+                {isRefreshing ? "Đang cập nhật…" : "Cập nhật dữ liệu"}
               </button>
             </div>
           </div>
@@ -865,9 +891,7 @@ export default function Dashboard() {
           <ActionModal
             title={utility}
             description={
-              utility === "Cập nhật dữ liệu"
-                ? "Dữ liệu mô phỏng đã sẵn sàng đồng bộ. Xác nhận để cập nhật thời điểm dữ liệu mới nhất."
-                : "Đây là màn hình thao tác mẫu cho buổi demo. Xác nhận để lưu thay đổi ở trạng thái nháp."
+              "Thao tác này cần được thực hiện trong phân hệ dữ liệu tương ứng."
             }
             onClose={() => setUtility(null)}
             onConfirm={() => {
