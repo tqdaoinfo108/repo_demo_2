@@ -36,6 +36,55 @@ app.get("/api/dashboard/overview", async (request, response, next) => {
   } catch (error) { next(error); }
 });
 
+app.get("/api/cooperatives/:code/overview", async (request, response, next) => {
+  try {
+    const db = await getDatabase();
+    const code = request.params.code;
+    const cooperative = await db.collection("cooperatives").findOne({ code });
+    if (!cooperative) return response.status(404).json({ error:"Record not found" });
+
+    const [members, parcels, units, users, documents, contracts, capital] = await Promise.all([
+      db.collection("members").find({ cooperativeCode:code }).toArray(),
+      db.collection("parcels").find({ cooperativeCode:code }).toArray(),
+      db.collection("organizationUnits").find({ cooperativeCode:code }).toArray(),
+      db.collection("users").find({ cooperativeCode:code }).toArray(),
+      db.collection("documents").find({ cooperativeCode:code }).toArray(),
+      db.collection("contracts").find({ cooperativeCode:code }).toArray(),
+      db.collection("capitalContributions").aggregate([{ $match:{ cooperativeCode:code } }, { $group:{ _id:null, amount:{ $sum:"$amount" }, shares:{ $sum:"$shares" } } }]).toArray(),
+    ]);
+    const areaHa = parcels.reduce((sum, parcel) => sum + (parcel.areaHa || 0), 0);
+    const zones = Object.values(parcels.reduce((result, parcel) => {
+      const key = parcel.zoneCode || "Chưa phân vùng";
+      if (!result[key]) result[key] = { code:key, areaHa:0, parcels:0, standards:new Set() };
+      result[key].areaHa += parcel.areaHa || 0; result[key].parcels += 1;
+      if (parcel.standard) result[key].standards.add(parcel.standard);
+      return result;
+    }, {})).map((zone) => ({ ...zone, standards:[...zone.standards] }));
+    const board = users.map((user) => ({ ...user, organization:units.find((unit) => unit.code === user.organizationUnitCode)?.name || "Ban quản trị" }));
+    response.json({ data:{ cooperative, summary:{ memberCount:members.length, householdCount:new Set(members.map((member) => member.householdCode)).size, parcelCount:parcels.length, areaHa, capitalAmount:capital[0]?.amount || 0, shares:capital[0]?.shares || 0, documentCount:documents.length, contractCount:contracts.length }, board, documents, contracts, zones } });
+  } catch (error) { next(error); }
+});
+
+app.get("/api/members/:code/profile", async (request, response, next) => {
+  try {
+    const db = await getDatabase();
+    const code = request.params.code;
+    const member = await db.collection("members").findOne({ code });
+    if (!member) return response.status(404).json({ error:"Record not found" });
+    const parcels = await db.collection("parcels").find({ memberCode:code }).toArray();
+    const parcelCodes = parcels.map((parcel) => parcel.code);
+    const [cooperative, seasons, fieldLogs, contributions, documents, auditEvents] = await Promise.all([
+      db.collection("cooperatives").findOne({ code:member.cooperativeCode }),
+      db.collection("seasons").find({ cooperativeCode:member.cooperativeCode, parcelCodes:{ $in:parcelCodes } }).toArray(),
+      db.collection("fieldLogs").find({ cooperativeCode:member.cooperativeCode, $or:[{ performedBy:code }, { parcelCode:{ $in:parcelCodes } }] }).sort({ performedAt:-1 }).toArray(),
+      db.collection("capitalContributions").find({ cooperativeCode:member.cooperativeCode, memberCode:code }).sort({ reconciledAt:-1 }).toArray(),
+      db.collection("documents").find({ cooperativeCode:member.cooperativeCode, linkedCode:{ $in:[code, ...parcelCodes] } }).toArray(),
+      db.collection("auditEvents").find({ cooperativeCode:member.cooperativeCode, actorCode:code }).sort({ createdAt:-1 }).toArray(),
+    ]);
+    response.json({ data:{ member, cooperative, parcels, seasons, fieldLogs, contributions, documents, auditEvents } });
+  } catch (error) { next(error); }
+});
+
 app.get("/api/:collection", async (request, response, next) => {
   try {
     const name = collectionName(request.params.collection); if (!name) return response.status(404).json({ error:"Unknown collection" });
