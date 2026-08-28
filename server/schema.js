@@ -3,7 +3,7 @@ const collectionDefinitions = [
   ["members", "code"], ["parcels", "code"], ["seasons", "code"], ["fieldLogs", "code"],
   ["harvests", "code"], ["packagingBatches", "code"], ["qualityInspections", "code"], ["warehouses", "code"],
   ["inventoryLots", "code"], ["shipments", "code"], ["contracts", "code"], ["salesOrders", "code"],
-  ["financialEntries", "code"], ["capitalContributions", "code"], ["documents", "code"], ["notifications", "code"], ["auditEvents", "eventId"],
+  ["financialEntries", "code"], ["capitalContributions", "code"], ["documents", "code"], ["notifications", "code"], ["assets", "code"], ["auditEvents", "eventId"],
 ];
 
 export async function initializeSchema(db) {
