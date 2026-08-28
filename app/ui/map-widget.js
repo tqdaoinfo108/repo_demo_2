@@ -3,18 +3,13 @@
 import { useEffect, useRef } from "react";
 import "leaflet/dist/leaflet.css";
 
-export default function MapWidget({ selectedParcel, onSelect }) {
+export default function MapWidget({ selectedParcel, parcels = [], onSelect }) {
   const ref = useRef(null);
 
   useEffect(() => {
     let map;
     let L;
     let disposed = false;
-    const parcels = [
-      { id: "TD-042", name: "Ông Nguyễn Văn Thành", crop: "Sầu riêng Ri6", area: "2,4 ha", color: "#2d7a4f", points: [[10.464, 105.668], [10.4646, 105.674], [10.460, 105.674], [10.460, 105.668]] },
-      { id: "TD-118", name: "Bà Trần Thị Lan", crop: "Xoài cát Hòa Lộc", area: "1,8 ha", color: "#d99c2b", points: [[10.469, 105.676], [10.471, 105.681], [10.467, 105.683], [10.466, 105.678]] },
-      { id: "TD-209", name: "Tổ liên kết An Phú", crop: "Bưởi da xanh", area: "3,1 ha", color: "#4b82c3", points: [[10.457, 105.677], [10.459, 105.684], [10.454, 105.684], [10.453, 105.679]] },
-    ];
 
     async function init() {
       L = (await import("leaflet")).default;
@@ -31,16 +26,18 @@ export default function MapWidget({ selectedParcel, onSelect }) {
         .bindTooltip("TP Cao Lãnh · Đồng Tháp", { direction: "top", offset: [0, -8] })
         .addTo(map);
       parcels.forEach((parcel) => {
-        const layer = L.polygon(parcel.points, { color: parcel.color, weight: 2, fillColor: parcel.color, fillOpacity: 0.28 });
+        const [lng, lat] = parcel.geometry?.coordinates || [105.682255, 10.452478];
+        const color = parcel.color || "#2d7a4f";
+        const layer = L.circle([lat, lng], { radius:Math.max(35, (parcel.areaHa || 1) * 45), color, weight:2, fillColor:color, fillOpacity:0.28 });
         layer.on("click", () => onSelect(parcel));
-        layer.bindTooltip(`${parcel.id} · ${parcel.crop}`, { sticky: true });
+        layer.bindTooltip(`${parcel.id || parcel.code} · ${parcel.crop}`, { sticky: true });
         layer.addTo(parcelLayers);
       });
-      L.control.layers({ "OpenStreetMap": osmLayer }, { "Quy hoạch TP Cao Lãnh": planningLayer, "Thửa đất mô phỏng": parcelLayers }, { collapsed: false, position: "topright" }).addTo(map);
+      L.control.layers({ "OpenStreetMap": osmLayer }, { "Quy hoạch TP Cao Lãnh": planningLayer, "Thửa đất": parcelLayers }, { collapsed: false, position: "topright" }).addTo(map);
     }
     init();
     return () => { disposed = true; map?.remove(); };
-  }, [onSelect]);
+  }, [onSelect, parcels]);
 
   return <div ref={ref} className="map-canvas" aria-label="Bản đồ vùng sản xuất OpenStreetMap" />;
 }

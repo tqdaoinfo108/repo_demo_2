@@ -6,4 +6,13 @@ export async function apiGet(path) {
   return response.json();
 }
 
+export async function apiRequest(path, method, body) {
+  const response = await fetch(`${API_URL}${path}`, { method, headers:{ Accept:"application/json", "Content-Type":"application/json" }, body:body === undefined ? undefined : JSON.stringify(body) });
+  if (!response.ok) { const payload = await response.json().catch(() => ({})); throw new Error(payload.error || `API request failed: ${response.status}`); }
+  return response.json();
+}
+
+export const apiPost = (path, body) => apiRequest(path, "POST", body);
+export const apiPut = (path, body) => apiRequest(path, "PUT", body);
+
 export { API_URL };

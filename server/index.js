@@ -85,6 +85,22 @@ app.get("/api/members/:code/profile", async (request, response, next) => {
   } catch (error) { next(error); }
 });
 
+app.get("/api/parcels/:code/profile", async (request, response, next) => {
+  try {
+    const db = await getDatabase(); const code = request.params.code;
+    const parcel = await db.collection("parcels").findOne({ code });
+    if (!parcel) return response.status(404).json({ error:"Record not found" });
+    const [member, fieldLogs, seasons, documents, harvests] = await Promise.all([
+      db.collection("members").findOne({ code:parcel.memberCode }),
+      db.collection("fieldLogs").find({ parcelCode:code }).sort({ performedAt:-1 }).toArray(),
+      db.collection("seasons").find({ cooperativeCode:parcel.cooperativeCode, parcelCodes:code }).toArray(),
+      db.collection("documents").find({ cooperativeCode:parcel.cooperativeCode, linkedCode:code }).toArray(),
+      db.collection("harvests").find({ parcelCode:code }).sort({ harvestedAt:-1 }).toArray(),
+    ]);
+    response.json({ data:{ parcel, member, fieldLogs, seasons, documents, harvests } });
+  } catch (error) { next(error); }
+});
+
 app.get("/api/:collection", async (request, response, next) => {
   try {
     const name = collectionName(request.params.collection); if (!name) return response.status(404).json({ error:"Unknown collection" });
@@ -107,6 +123,16 @@ app.post("/api/:collection", async (request, response, next) => {
     const name = collectionName(request.params.collection); if (!name) return response.status(404).json({ error:"Unknown collection" });
     const record = { ...request.body, createdAt:new Date(), updatedAt:new Date() }; const field = collectionDefinitions.find(([collection]) => collection === name)?.[1] || "code";
     if (!record[field]) return response.status(400).json({ error:`${field} is required` }); await (await getDatabase()).collection(name).insertOne(record); response.status(201).json({ data:record });
+  } catch (error) { next(error); }
+});
+
+app.put("/api/:collection/:code", async (request, response, next) => {
+  try {
+    const name = collectionName(request.params.collection); if (!name) return response.status(404).json({ error:"Unknown collection" });
+    const field = collectionDefinitions.find(([collection]) => collection === name)?.[1] || "code";
+    const update = { ...request.body, updatedAt:new Date() }; delete update._id; delete update[field];
+    const result = await (await getDatabase()).collection(name).findOneAndUpdate({ [field]:request.params.code }, { $set:update }, { returnDocument:"after" });
+    if (!result) return response.status(404).json({ error:"Record not found" }); response.json({ data:result });
   } catch (error) { next(error); }
 });
 
