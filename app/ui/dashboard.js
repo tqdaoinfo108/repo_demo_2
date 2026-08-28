@@ -41,7 +41,7 @@ import ModuleView from "./module-view";
 import SystemSettings from "./system-settings";
 import ProfileSheet from "./profile-sheet";
 import { ActionModal, SideSheet } from "./shared-ui";
-import { apiGet } from "../lib/api";
+import { API_URL, apiGet } from "../lib/api";
 
 const navGroups = [
   {
@@ -217,6 +217,7 @@ export default function Dashboard() {
   const [selectedCoop, setSelectedCoop] = useState(cooperatives[0]);
   const [dashboardSource, setDashboardSource] = useState(null);
   const [dashboardError, setDashboardError] = useState("");
+  const [liveNotifications, setLiveNotifications] = useState([]);
   const [quickSearchOpen, setQuickSearchOpen] = useState(false);
   const [activityOpen, setActivityOpen] = useState(false);
   const [detail, setDetail] = useState(null);
@@ -249,6 +250,7 @@ export default function Dashboard() {
     }).catch(() => { if (!cancelled) { setDashboardSource(emptyDashboardSource(cooperativeCode)); setDashboardError("Không thể kết nối API dữ liệu. Kiểm tra API_URL và trạng thái MongoDB."); } });
     return () => { cancelled = true; };
   }, [selectedCoop.code]);
+  useEffect(() => { const token = window.localStorage.getItem("htx_auth_token"); if (!token) return; const stream = new EventSource(`${API_URL}/api/notifications/stream?token=${encodeURIComponent(token)}`); stream.addEventListener("initial", (event) => setLiveNotifications(JSON.parse(event.data))); stream.addEventListener("notification", (event) => setLiveNotifications((items) => [JSON.parse(event.data), ...items])); return () => stream.close(); }, []);
   const dashboard = useMemo(() => buildDashboardView(dashboardSource), [dashboardSource]);
 
   return (
@@ -421,6 +423,7 @@ export default function Dashboard() {
               </button>
               {notificationOpen && (
                 <NotificationPopover
+                  items={liveNotifications}
                   onClose={() => setNotificationOpen(false)}
                   onNotice={() => setNotice(true)}
                   onOpen={(module) => {
@@ -832,6 +835,7 @@ export default function Dashboard() {
       {detail && (
         <DashboardDetail
           detail={detail}
+          notifications={liveNotifications}
           onClose={() => setDetail(null)}
           onGo={(module) => {
             setDetail(null);
@@ -1439,7 +1443,7 @@ function buildChainNodes(item) {
     current: index === stageIndex,
   }));
 }
-function NotificationPopover({ onClose, onNotice, onOpen, onAll }) {
+function NotificationPopover({ items, onClose, onNotice, onOpen, onAll }) {
   return (
     <div className="notification-popover">
       <header>
@@ -1457,21 +1461,19 @@ function NotificationPopover({ onClose, onNotice, onOpen, onAll }) {
         </button>
       </header>
       <div className="notification-list">
-        {notifications.map(
-          ({ icon: Icon, tone, title, detail, time, action, module }) => (
-            <article key={title}>
-              <div className={`notification-icon ${tone}`}>
-                <Icon size={18} />
+        {items.map((item) => (
+            <article key={item.code}>
+              <div className="notification-icon green">
+                <IconBell size={18} />
               </div>
               <div>
-                <b>{title}</b>
-                <p>{detail}</p>
-                <span>{time}</span>
+                <b>{item.title}</b>
+                <p>{item.message}</p>
+                <span>{new Intl.DateTimeFormat("vi-VN", { dateStyle:"short", timeStyle:"short" }).format(new Date(item.sentAt))}</span>
               </div>
-              <button onClick={() => onOpen(module)}>{action}</button>
+              <button onClick={() => onOpen(item.module || "Tổng quan")}>Mở</button>
             </article>
-          ),
-        )}
+        ))}
       </div>
       <footer>
         <button onClick={onAll}>Xem tất cả thông báo</button>
@@ -1537,16 +1539,16 @@ function ActivitySheet({ items, onClose, onSelect }) {
     </SideSheet>
   );
 }
-function DashboardDetail({ detail, onClose, onGo }) {
+function DashboardDetail({ detail, notifications: detailNotifications = [], onClose, onGo }) {
   if (detail.type === "notifications")
     return (
       <SideSheet title={detail.title} onClose={onClose}>
         <div className="all-activities">
-          {notifications.map((item) => (
+          {detailNotifications.map((item) => (
             <article className="notification-detail" key={item.title}>
               <b>{item.title}</b>
-              <p>{item.detail}</p>
-              <span>{item.time}</span>
+              <p>{item.message}</p>
+              <span>{new Intl.DateTimeFormat("vi-VN", { dateStyle:"short", timeStyle:"short" }).format(new Date(item.sentAt))}</span>
             </article>
           ))}
         </div>
