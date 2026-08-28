@@ -1,12 +1,15 @@
 import "dotenv/config";
 import cors from "cors";
+import bcrypt from "bcryptjs";
 import express from "express";
+import jwt from "jsonwebtoken";
 import { getDatabase } from "./database.js";
 import { collectionDefinitions } from "./schema.js";
 
 const app = express();
 const port = Number(process.env.API_PORT || 4000);
 const collections = new Set(collectionDefinitions.map(([name]) => name));
+const jwtSecret = process.env.JWT_SECRET || "development-only-change-this-secret";
 
 app.use(cors({ origin: process.env.CORS_ORIGIN?.split(",") || true }));
 app.use(express.json({ limit: "1mb" }));
@@ -16,10 +19,40 @@ function collectionName(value) {
   return value;
 }
 
+function safeUser(user) { if (!user) return null; const { passwordHash, passwordChangedAt, ...safe } = user; return safe; }
+async function requireAdmin(request, response, next) {
+  try {
+    const token = request.headers.authorization?.replace(/^Bearer\s+/i, ""); if (!token) return response.status(401).json({ error:"Authentication required" });
+    const payload = jwt.verify(token, jwtSecret); const db = await getDatabase(); const user = await db.collection("users").findOne({ email:payload.email, status:"active" });
+    const role = user && await db.collection("roles").findOne({ code:user.roleCode, cooperativeCode:user.cooperativeCode });
+    if (!user || !role || !(role.permissions || []).includes("*")) return response.status(403).json({ error:"Administrator permission required" });
+    request.auth = { user:safeUser(user), role }; next();
+  } catch { response.status(401).json({ error:"Invalid or expired session" }); }
+}
+
 app.get("/health", async (_request, response) => {
   try { const db = await getDatabase(); await db.command({ ping: 1 }); response.json({ ok:true, database:db.databaseName }); }
   catch (error) { response.status(503).json({ ok:false, error:error.message }); }
 });
+
+app.post("/api/auth/login", async (request, response, next) => {
+  try {
+    const { email, password } = request.body || {}; if (!email || !password) return response.status(400).json({ error:"Email and password are required" });
+    const user = await (await getDatabase()).collection("users").findOne({ email:email.toLowerCase(), status:"active" });
+    if (!user || !user.passwordHash || !await bcrypt.compare(password, user.passwordHash)) return response.status(401).json({ error:"Invalid email or password" });
+    const token = jwt.sign({ email:user.email, userCode:user.code }, jwtSecret, { expiresIn:"8h" }); response.json({ token, user:safeUser(user) });
+  } catch (error) { next(error); }
+});
+
+app.get("/api/auth/me", requireAdmin, (request, response) => response.json({ data:request.auth.user }));
+
+app.get("/api/admin/users", requireAdmin, async (request, response, next) => { try { const rows = await (await getDatabase()).collection("users").find({ cooperativeCode:request.query.cooperativeCode || request.auth.user.cooperativeCode }).toArray(); response.json({ data:rows.map(safeUser) }); } catch (error) { next(error); } });
+app.post("/api/admin/users", requireAdmin, async (request, response, next) => { try { const { password, ...input } = request.body || {}; if (!input.code || !input.email || !password || !input.roleCode) return response.status(400).json({ error:"code, email, password and roleCode are required" }); const record = { ...input, email:input.email.toLowerCase(), cooperativeCode:input.cooperativeCode || request.auth.user.cooperativeCode, status:input.status || "active", passwordHash:await bcrypt.hash(password, 12), passwordChangedAt:new Date(), createdAt:new Date(), updatedAt:new Date() }; await (await getDatabase()).collection("users").insertOne(record); response.status(201).json({ data:safeUser(record) }); } catch (error) { next(error); } });
+app.put("/api/admin/users/:code", requireAdmin, async (request, response, next) => { try { const { password, _id, ...input } = request.body || {}; const update = { ...input, updatedAt:new Date() }; if (password) { update.passwordHash = await bcrypt.hash(password, 12); update.passwordChangedAt = new Date(); } const result = await (await getDatabase()).collection("users").findOneAndUpdate({ code:request.params.code }, { $set:update }, { returnDocument:"after" }); if (!result) return response.status(404).json({ error:"Record not found" }); response.json({ data:safeUser(result) }); } catch (error) { next(error); } });
+app.delete("/api/admin/users/:code", requireAdmin, async (request, response, next) => { try { if (request.params.code === request.auth.user.code) return response.status(400).json({ error:"Cannot delete current user" }); const result = await (await getDatabase()).collection("users").deleteOne({ code:request.params.code }); if (!result.deletedCount) return response.status(404).json({ error:"Record not found" }); response.status(204).end(); } catch (error) { next(error); } });
+app.put("/api/admin/roles/:code", requireAdmin, async (request, response, next) => { try { const { _id, code, ...input } = request.body || {}; const result = await (await getDatabase()).collection("roles").findOneAndUpdate({ code:request.params.code }, { $set:{ ...input, updatedAt:new Date() } }, { returnDocument:"after" }); if (!result) return response.status(404).json({ error:"Record not found" }); response.json({ data:result }); } catch (error) { next(error); } });
+app.post("/api/admin/roles", requireAdmin, async (request, response, next) => { try { const record = { ...request.body, cooperativeCode:request.body.cooperativeCode || request.auth.user.cooperativeCode, permissions:request.body.permissions || [], createdAt:new Date(), updatedAt:new Date() }; if (!record.code || !record.name) return response.status(400).json({ error:"code and name are required" }); await (await getDatabase()).collection("roles").insertOne(record); response.status(201).json({ data:record }); } catch (error) { next(error); } });
+app.delete("/api/admin/roles/:code", requireAdmin, async (request, response, next) => { try { if (request.params.code === "ADMIN") return response.status(400).json({ error:"Built-in administrator role cannot be deleted" }); const result = await (await getDatabase()).collection("roles").deleteOne({ code:request.params.code }); if (!result.deletedCount) return response.status(404).json({ error:"Record not found" }); response.status(204).end(); } catch (error) { next(error); } });
 
 app.get("/api/dashboard/overview", async (request, response, next) => {
   try {

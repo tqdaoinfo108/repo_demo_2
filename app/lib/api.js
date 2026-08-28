@@ -1,13 +1,15 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 export async function apiGet(path) {
-  const response = await fetch(`${API_URL}${path}`, { headers: { Accept: "application/json" } });
+  const token = typeof window !== "undefined" ? window.localStorage.getItem("htx_auth_token") : null;
+  const response = await fetch(`${API_URL}${path}`, { headers: { Accept: "application/json", ...(token ? { Authorization:`Bearer ${token}` } : {}) } });
   if (!response.ok) throw new Error(`API request failed: ${response.status}`);
   return response.json();
 }
 
 export async function apiRequest(path, method, body) {
-  const response = await fetch(`${API_URL}${path}`, { method, headers:{ Accept:"application/json", "Content-Type":"application/json" }, body:body === undefined ? undefined : JSON.stringify(body) });
+  const token = typeof window !== "undefined" ? window.localStorage.getItem("htx_auth_token") : null;
+  const response = await fetch(`${API_URL}${path}`, { method, headers:{ Accept:"application/json", "Content-Type":"application/json", ...(token ? { Authorization:`Bearer ${token}` } : {}) }, body:body === undefined ? undefined : JSON.stringify(body) });
   if (!response.ok) { const payload = await response.json().catch(() => ({})); throw new Error(payload.error || `API request failed: ${response.status}`); }
   return response.json();
 }
