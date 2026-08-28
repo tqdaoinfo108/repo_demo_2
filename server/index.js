@@ -1,4 +1,3 @@
-import "dotenv/config";
 import cors from "cors";
 import bcrypt from "bcryptjs";
 import express from "express";
