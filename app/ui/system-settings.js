@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   IconArrowLeft,
   IconBell,
@@ -14,6 +14,7 @@ import {
   IconShieldCheck,
 } from "@tabler/icons-react";
 import { FormModal, Status } from "./shared-ui";
+import { apiGet } from "../lib/api";
 
 const users = [
   ["Nguyễn Minh Tâm", "Quản trị HTX", "Toàn hệ thống", "Đang hoạt động"],
@@ -68,6 +69,8 @@ const auditLogs = [
 export default function SystemSettings({ onClose, onNotice }) {
   const [tab, setTab] = useState("Đơn vị & dữ liệu");
   const [modal, setModal] = useState(null);
+  const [users, setUsers] = useState([]); const [roles, setRoles] = useState([]); const [auditLogs, setAuditLogs] = useState([]); const [dataError, setDataError] = useState("");
+  useEffect(() => { let active = true; Promise.all([apiGet("/api/users?cooperativeCode=HTX-001"), apiGet("/api/roles?cooperativeCode=HTX-001"), apiGet("/api/auditEvents?cooperativeCode=HTX-001")]).then(([userResult, roleResult, auditResult]) => { if (!active) return; setUsers(userResult.data.map((item) => [item.name, item.roleCode || "Chưa gán vai trò", item.cooperativeCode || "Toàn hệ thống", item.status === "active" ? "Đang hoạt động" : item.status])); setRoles(roleResult.data.map((item) => [item.name, (item.permissions || []).join(" · "), item.scope || "cooperative", String(item.permissions?.length || 0)])); setAuditLogs(auditResult.data.map((item) => [new Intl.DateTimeFormat("vi-VN", { dateStyle:"short", timeStyle:"short" }).format(new Date(item.createdAt)), item.actorCode || "Hệ thống", item.action, "Đã áp dụng"])); }).catch((reason) => active && setDataError(reason.message)); return () => { active = false; }; }, []);
   const tabs = [
     "Đơn vị & dữ liệu",
     "Người dùng & quyền",
@@ -92,7 +95,7 @@ export default function SystemSettings({ onClose, onNotice }) {
           Quay lại vận hành
         </button>
       </div>
-      <div className="settings-tabs" role="tablist">
+      {dataError && <p className="data-source-error">Không thể tải dữ liệu quản trị từ MongoDB: {dataError}</p>}<div className="settings-tabs" role="tablist">
         {tabs.map((item) => (
           <button
             key={item}
