@@ -135,6 +135,28 @@ app.get("/api/trace/:collection/:code", async (request, response, next) => {
   } catch (error) { next(error); }
 });
 
+app.get("/api/commerce/:collection/:code", async (request, response, next) => {
+  try {
+    const db = await getDatabase(); const { collection, code } = request.params;
+    if (!["qualityInspections", "inventoryLots", "shipments", "salesOrders"].includes(collection)) return response.status(404).json({ error:"Unsupported commerce collection" });
+    const record = await db.collection(collection).findOne({ code });
+    if (!record) return response.status(404).json({ error:"Record not found" });
+    const lotCodes = collection === "inventoryLots" ? [code] : collection === "shipments" ? record.lotCodes || [] : [];
+    const orderCode = collection === "salesOrders" ? code : record.orderCode;
+    const [warehouse, lots, shipments, order, contract, inspections, sourceHarvest, sourcePackage] = await Promise.all([
+      record.warehouseCode ? db.collection("warehouses").findOne({ code:record.warehouseCode }) : null,
+      db.collection("inventoryLots").find({ code:{ $in:lotCodes } }).toArray(),
+      db.collection("shipments").find({ $or:[{ orderCode:orderCode || "" }, { lotCodes:code }] }).toArray(),
+      orderCode ? db.collection("salesOrders").findOne({ code:orderCode }) : null,
+      record.contractCode ? db.collection("contracts").findOne({ code:record.contractCode }) : null,
+      db.collection("qualityInspections").find({ $or:[{ lotCode:code }, { sourceCode:code }] }).toArray(),
+      record.sourceCodes?.length ? db.collection("harvests").find({ code:{ $in:record.sourceCodes } }).toArray() : [],
+      record.sourceCodes?.length ? db.collection("packagingBatches").find({ code:{ $in:record.sourceCodes } }).toArray() : [],
+    ]);
+    response.json({ data:{ record, warehouse, lots, shipments, order, contract, inspections, sourceHarvest, sourcePackage } });
+  } catch (error) { next(error); }
+});
+
 app.get("/api/:collection", async (request, response, next) => {
   try {
     const name = collectionName(request.params.collection); if (!name) return response.status(404).json({ error:"Unknown collection" });
