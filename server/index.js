@@ -101,6 +101,21 @@ app.get("/api/parcels/:code/profile", async (request, response, next) => {
   } catch (error) { next(error); }
 });
 
+app.get("/api/seasons/:code/profile", async (request, response, next) => {
+  try {
+    const db = await getDatabase(); const code = request.params.code;
+    const season = await db.collection("seasons").findOne({ code });
+    if (!season) return response.status(404).json({ error:"Record not found" });
+    const [parcels, fieldLogs, harvests, cooperative] = await Promise.all([
+      db.collection("parcels").find({ cooperativeCode:season.cooperativeCode, code:{ $in:season.parcelCodes || [] } }).toArray(),
+      db.collection("fieldLogs").find({ seasonCode:code }).sort({ performedAt:-1 }).toArray(),
+      db.collection("harvests").find({ seasonCode:code }).sort({ harvestedAt:-1 }).toArray(),
+      db.collection("cooperatives").findOne({ code:season.cooperativeCode }),
+    ]);
+    response.json({ data:{ season, cooperative, parcels, fieldLogs, harvests } });
+  } catch (error) { next(error); }
+});
+
 app.get("/api/:collection", async (request, response, next) => {
   try {
     const name = collectionName(request.params.collection); if (!name) return response.status(404).json({ error:"Unknown collection" });
