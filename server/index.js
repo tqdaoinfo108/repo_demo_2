@@ -116,6 +116,25 @@ app.get("/api/seasons/:code/profile", async (request, response, next) => {
   } catch (error) { next(error); }
 });
 
+app.get("/api/trace/:collection/:code", async (request, response, next) => {
+  try {
+    const db = await getDatabase(); const { collection, code } = request.params;
+    if (!["fieldLogs", "harvests", "packagingBatches"].includes(collection)) return response.status(404).json({ error:"Unsupported trace collection" });
+    const record = await db.collection(collection).findOne({ code });
+    if (!record) return response.status(404).json({ error:"Record not found" });
+    const [parcel, season, member, harvest, packages, inspections, lots] = await Promise.all([
+      record.parcelCode ? db.collection("parcels").findOne({ code:record.parcelCode }) : null,
+      record.seasonCode ? db.collection("seasons").findOne({ code:record.seasonCode }) : null,
+      record.memberCode ? db.collection("members").findOne({ code:record.memberCode }) : null,
+      record.harvestCode ? db.collection("harvests").findOne({ code:record.harvestCode }) : null,
+      collection === "harvests" ? db.collection("packagingBatches").find({ harvestCode:code }).toArray() : [],
+      db.collection("qualityInspections").find({ cooperativeCode:record.cooperativeCode, $or:[{ sourceCode:code }, { lotCode:record.code }] }).toArray(),
+      db.collection("inventoryLots").find({ cooperativeCode:record.cooperativeCode, $or:[{ sourceCodes:code }, { sourceCodes:{ $in:record.qrCode ? [record.qrCode] : [] } }] }).toArray(),
+    ]);
+    response.json({ data:{ record, parcel, season, member, harvest, packages, inspections, lots } });
+  } catch (error) { next(error); }
+});
+
 app.get("/api/:collection", async (request, response, next) => {
   try {
     const name = collectionName(request.params.collection); if (!name) return response.status(404).json({ error:"Unknown collection" });
