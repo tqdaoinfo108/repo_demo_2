@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   IconBell,
   IconBuildingCommunity,
@@ -41,14 +41,7 @@ import ModuleView from "./module-view";
 import SystemSettings from "./system-settings";
 import ProfileSheet from "./profile-sheet";
 import { ActionModal, SideSheet } from "./shared-ui";
-import {
-  activities,
-  alerts,
-  controlChecks,
-  cropProgress,
-  dashboardKpis,
-  orderSnapshot,
-} from "./dashboard-data";
+import { apiGet } from "../lib/api";
 
 const navGroups = [
   {
@@ -222,6 +215,8 @@ export default function Dashboard() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [orgOpen, setOrgOpen] = useState(false);
   const [selectedCoop, setSelectedCoop] = useState(cooperatives[0]);
+  const [dashboardSource, setDashboardSource] = useState(null);
+  const [dashboardError, setDashboardError] = useState("");
   const [quickSearchOpen, setQuickSearchOpen] = useState(false);
   const [activityOpen, setActivityOpen] = useState(false);
   const [detail, setDetail] = useState(null);
@@ -244,6 +239,17 @@ export default function Dashboard() {
       }).format(new Date(2026, 7, 18)),
     [],
   );
+  useEffect(() => {
+    let cancelled = false;
+    const cooperativeCode = selectedCoop.code;
+    Promise.all([
+      apiGet(`/api/dashboard/overview?cooperativeCode=${cooperativeCode}`), apiGet(`/api/salesOrders?cooperativeCode=${cooperativeCode}`), apiGet(`/api/inventoryLots?cooperativeCode=${cooperativeCode}`), apiGet(`/api/qualityInspections?cooperativeCode=${cooperativeCode}`), apiGet(`/api/financialEntries?cooperativeCode=${cooperativeCode}`), apiGet(`/api/auditEvents?cooperativeCode=${cooperativeCode}`),
+    ]).then(([overview, orders, lots, quality, finance, audit]) => {
+      if (!cancelled) { setDashboardSource({ overview, orders:orders.data, lots:lots.data, quality:quality.data, finance:finance.data, audit:audit.data }); setDashboardError(""); }
+    }).catch(() => { if (!cancelled) { setDashboardSource(emptyDashboardSource(cooperativeCode)); setDashboardError("Không thể kết nối API dữ liệu. Kiểm tra API_URL và trạng thái MongoDB."); } });
+    return () => { cancelled = true; };
+  }, [selectedCoop.code]);
+  const dashboard = useMemo(() => buildDashboardView(dashboardSource), [dashboardSource]);
 
   return (
     <main
@@ -469,6 +475,7 @@ export default function Dashboard() {
               </button>
             </div>
           )}
+          {dashboardError && <div className="notice warning"><IconAlertTriangle size={19} /><span>{dashboardError}</span><button onClick={() => setDashboardError("")}><IconX size={17} /></button></div>}
 
           {viewingSettings ? (
             <SystemSettings
@@ -478,7 +485,7 @@ export default function Dashboard() {
           ) : active === "Tổng quan" ? (
             <>
               <section className="kpi-grid">
-                {dashboardKpis.map((metric) => (
+                {dashboard.kpis.map((metric) => (
                   <Metric
                     key={metric.label}
                     {...metric}
@@ -540,7 +547,7 @@ export default function Dashboard() {
                       </div>
                     </button>
                     <div className="crop-list">
-                      {cropProgress.map((crop) => (
+                      {dashboard.crops.map((crop) => (
                         <Crop
                           key={crop.name}
                           {...crop}
@@ -608,7 +615,7 @@ export default function Dashboard() {
                     <span>CN</span>
                   </div>
                   <div className="order-snapshot">
-                    {orderSnapshot.map((order) => (
+                    {dashboard.orders.map((order) => (
                       <button
                         key={order.code}
                         onClick={() =>
@@ -715,7 +722,7 @@ export default function Dashboard() {
               </section>
 
               <section className="control-grid">
-                {controlChecks.map((item) => (
+                {dashboard.controls.map((item) => (
                   <button
                     className={`control-check ${item.tone}`}
                     key={item.label}
@@ -744,7 +751,7 @@ export default function Dashboard() {
                     </button>
                   </div>
                   <div className="activity-list">
-                    {activities.map((item) => (
+                    {dashboard.activities.map((item) => (
                       <button
                         className="activity"
                         key={item.title}
@@ -776,7 +783,7 @@ export default function Dashboard() {
                     </div>
                     <span className="count">03</span>
                   </div>
-                  {alerts.map((alert) => (
+                  {dashboard.alerts.map((alert) => (
                     <Alert
                       key={alert.title}
                       title={alert.title}
@@ -814,6 +821,7 @@ export default function Dashboard() {
       )}
       {activityOpen && (
         <ActivitySheet
+          items={dashboard.activities}
           onClose={() => setActivityOpen(false)}
           onSelect={(item) => {
             setActivityOpen(false);
@@ -1040,6 +1048,30 @@ function localInsight(question) {
   if (/hộ|thửa.*bất thường|bất thường.*sản lượng/.test(text)) return "Kết luận: Chưa thể xác định hộ có sản lượng bất thường.\n\nBằng chứng: Context có tổng sản lượng theo cây nhưng không có lịch sử năng suất chuẩn hoá theo hộ/thửa/ha.\n\nRủi ro/mức độ tin cậy: Không gắn cờ hộ dân khi thiếu đường cơ sở so sánh.\n\nViệc cần làm: Lưu sản lượng thực tế theo thửa, diện tích, mùa vụ và 3 kỳ gần nhất; chỉ gắn cờ khi lệch ngưỡng đã phê duyệt.";
   if (/báo cáo|tháng|quý|năm/.test(text)) return "BÁO CÁO VẬN HÀNH DEMO – 18/08/2026\n\n1) Sản xuất: 2.684/3.274 tấn, đạt 82%; 12 nhật ký chờ xác nhận.\n2) Chất lượng: 8/10 lô QC đạt; 2 lô cần hoàn tất kết quả/hồ sơ.\n3) Tiêu thụ: 27 đơn đang xử lý; 6/8 chuyến giao nhận đã điều phối.\n4) Tài chính: doanh thu 18,42 tỷ; công nợ quá hạn 62,8 triệu.\n\nViệc cần làm: nghiệm thu phiếu thu hoạch, chốt QC cho lô xuất kho, ưu tiên SR-2408-16 và đối soát 2 hợp đồng còn lại.";
   return "Kết luận: Có 3 ưu tiên vận hành trong ngày.\n\nBằng chứng: 12 nhật ký chờ xác nhận; QC đạt 8/10 lô; SR-2408-16 còn 1.250 kg cần xuất trong 48 giờ; công nợ quá hạn 62,8 triệu.\n\nRủi ro/mức độ tin cậy: Đây là phân tích từ dữ liệu demo chốt 18/08/2026.\n\nViệc cần làm: xác nhận nhật ký/phiếu cân, hoàn tất QC–giao nhận và lập kế hoạch thu công nợ.";
+}
+
+function emptyDashboardSource(cooperativeCode = "HTX-001") { return { overview:{ cooperativeCode, kpis:{ members:0, areaHa:0, plannedKg:0, actualKg:0, productionProgress:0, pendingLogs:0, pendingQuality:0, activeOrders:0, overdueDebt:0 }, priorityLots:[], seasons:[] }, orders:[], lots:[], quality:[], finance:[], audit:[] }; }
+function kgText(value) { return value >= 1000 ? `${(value / 1000).toLocaleString("vi-VN", { maximumFractionDigits:1 })} tấn` : `${value.toLocaleString("vi-VN")} kg`; }
+function moneyText(value) { return `${(value / 1000000000).toLocaleString("vi-VN", { maximumFractionDigits:2 })} tỷ`; }
+function buildDashboardView(source) {
+  const data = source || emptyDashboardSource(); const k = data.overview.kpis; const revenue = data.finance.filter((item) => item.kind === "receipt").reduce((sum,item) => sum + Math.max(item.amount || 0, 0), 0);
+  const kpis = [
+    { icon:"users", label:"Thành viên hoạt động", value:String(k.members), change:"Theo MongoDB", tone:"green", module:"Hộ dân & thành viên", detail:{ title:"Thành viên hoạt động", summary:`${k.members} thành viên đang hoạt động trong HTX được chọn.`, facts:[["Nguồn","members"],["Phạm vi",data.overview.cooperativeCode]], timeline:[] } },
+    { icon:"map", label:"Diện tích sản xuất", value:`${Number(k.areaHa || 0).toLocaleString("vi-VN")} ha`, change:"Theo GIS", tone:"blue", module:"Đất đai & GIS", detail:{ title:"Diện tích sản xuất", summary:"Tổng diện tích thửa đất đang hoạt động được tổng hợp từ MongoDB.", facts:[["Diện tích",`${k.areaHa || 0} ha`]], timeline:[] } },
+    { icon:"tractor", label:"Sản lượng mùa vụ", value:kgText(k.actualKg || 0), change:`${k.productionProgress || 0}% kế hoạch`, tone:"amber", module:"Sản xuất", detail:{ title:"Sản lượng mùa vụ", summary:"Tổng hợp từ các mùa vụ đang có dữ liệu.", facts:[["Kế hoạch",kgText(k.plannedKg || 0)],["Thực tế",kgText(k.actualKg || 0)]], timeline:[] } },
+    { icon:"money", label:"Doanh thu đã thu", value:moneyText(revenue), change:`${data.orders.length} đơn`, tone:"purple", module:"Tài chính", detail:{ title:"Doanh thu đã thu", summary:"Tổng phiếu thu đã ghi nhận trong collection financialEntries.", facts:[["Phiếu thu",String(data.finance.filter((item) => item.kind === "receipt").length)],["Công nợ quá hạn",`${Number(k.overdueDebt || 0).toLocaleString("vi-VN")} đ`]], timeline:[] } },
+  ];
+  const palette = ["#2d7a4f", "#d99c2b", "#4b82c3", "#9187d9"]; const crops = data.overview.seasons.map((season,index) => ({ name:season.crop, amount:kgText(season.actualKg || 0), pct:season.planKg ? Math.round((season.actualKg || 0) / season.planKg * 100) : 0, color:palette[index % palette.length], area:"Theo thửa liên kết", plan:kgText(season.planKg || 0), harvest:season.status, module:"Sản xuất" }));
+  const orders = data.orders.map((order) => ({ code:order.code, customer:order.customer, product:order.product, quantity:kgText(order.quantityKg || 0), delivery:new Date(order.deliveryAt).toLocaleDateString("vi-VN"), status:order.status, value:"Chưa đối soát" }));
+  const controls = [
+    { label:"Nhật ký chờ xác nhận", value:String(k.pendingLogs || 0), note:"fieldLogs · trạng thái pending", tone:"green", module:"Vật tư & nhật ký" },
+    { label:"QC chờ kết quả", value:String(k.pendingQuality || 0), note:"qualityInspections · trạng thái pending", tone:"blue", module:"Chất lượng & kiểm nghiệm" },
+    { label:"Lô ưu tiên xuất", value:String(data.overview.priorityLots.length), note:"inventoryLots · priority-dispatch", tone:"amber", module:"Kho & tiêu thụ" },
+    { label:"Đơn đang xử lý", value:String(k.activeOrders || 0), note:"salesOrders chưa hoàn tất", tone:"purple", module:"Hợp đồng & đối soát" },
+  ];
+  const activities = data.audit.map((event) => ({ icon:IconClipboardCheck, title:event.action, sub:`${event.entity} · ${event.actorCode || "Hệ thống"}`, time:new Date(event.createdAt).toLocaleString("vi-VN"), tone:"green", module:"Hồ sơ & tài liệu", detail:{ title:event.action, description:"Dấu vết vận hành lấy từ MongoDB auditEvents.", facts:[["Mã sự kiện",event.eventId],["Đối tượng",event.entity]], timeline:[] } }));
+  const alerts = data.overview.priorityLots.map((lot) => ({ title:`Lô ${lot.code} cần ưu tiên xuất`, detail:`${kgText(lot.availableKg || 0)} · hạn ${new Date(lot.expiryAt).toLocaleDateString("vi-VN")}`, module:"Kho & tiêu thụ", detailData:{ title:`Lô ${lot.code}`, description:"Lô hàng được MongoDB đánh dấu priority-dispatch.", facts:[["Sản phẩm",lot.product],["Khối lượng",kgText(lot.availableKg || 0)],["Kho",lot.warehouseCode]], timeline:[] } }));
+  return { kpis, crops, orders, controls, activities, alerts };
 }
 
 const metricIcons = {
@@ -1475,11 +1507,11 @@ function QuickSearch({ onClose, onGo }) {
     </SideSheet>
   );
 }
-function ActivitySheet({ onClose, onSelect }) {
+function ActivitySheet({ items, onClose, onSelect }) {
   return (
     <SideSheet title="Tất cả hoạt động" onClose={onClose}>
       <div className="all-activities">
-        {activities.map((item) => (
+        {items.map((item) => (
           <button
             className="activity"
             key={item.title}
