@@ -34,8 +34,6 @@ jobs:
         run: npm run build
         env:
           BASE_PATH: ${{ steps.pages.outputs.base_path }}
-          NEXT_PUBLIC_AI_PROXY_URL: ${{ vars.AI_PROXY_URL }}
-          NEXT_PUBLIC_AI_TOKEN: ${{ vars.AI_TOKEN }}
           NEXT_PUBLIC_API_URL: ${{ vars.API_URL }}
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

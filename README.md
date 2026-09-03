@@ -68,7 +68,7 @@ Tiếp theo theo thứ tự dữ liệu phụ thuộc: Đất đai & GIS → S�
 Workflow `.github/workflows/deploy-pages.yml` build giao diện tĩnh. Thiết lập các Repository Variables sau:
 
 - `API_URL`: URL HTTPS của Express API, ví dụ `https://api.example.vn`.
-- `AI_PROXY_URL` hoặc `AI_TOKEN`: cấu hình AI theo cơ chế đang dùng.
+- ChatAI gọi cố định qua Vercel HTTPS tại `https://openrouterproxy-rosy.vercel.app/v1/chat/completions`; không cấu hình `AI_TOKEN` cho GitHub Pages.
 - `BASE_PATH` nếu triển khai dưới subpath.
 
 Không đưa chuỗi kết nối MongoDB, mật khẩu hoặc API key vào repository, source frontend, log hay GitHub Variables công khai. Chỉ server API đọc biến MongoDB từ secret/environment riêng.

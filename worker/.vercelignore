@@ -1,0 +1,4 @@
+# The local standalone server contains a locally assigned token and must not
+# be uploaded to the Vercel deployment. Vercel uses api/chat.py instead.
+openrouter_proxy.py
+__pycache__/
